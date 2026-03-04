@@ -1,12 +1,73 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import SiteHeader from "@/components/SiteHeader";
+import SiteFooter from "@/components/SiteFooter";
+import FeaturedArticle from "@/components/FeaturedArticle";
+import NewsCard from "@/components/NewsCard";
+import CategorySection from "@/components/CategorySection";
+import NewsletterSignup from "@/components/NewsletterSignup";
+import { articles, getArticlesByCategory } from "@/data/mockData";
 
 const Index = () => {
+  const featuredArticle = articles[0];
+  const latestArticles = articles.slice(1, 4);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen flex flex-col bg-background">
+      <SiteHeader />
+
+      <main className="flex-1">
+        {/* Breaking News Ticker */}
+        <div className="bg-primary text-primary-foreground py-1.5">
+          <div className="container flex items-center gap-3">
+            <span className="font-body text-xs font-bold uppercase tracking-wider bg-primary-foreground text-primary px-2 py-0.5 rounded-sm flex-shrink-0">
+              Breaking
+            </span>
+            <p className="font-body text-xs truncate">
+              {featuredArticle.title} — {featuredArticle.description}
+            </p>
+          </div>
+        </div>
+
+        {/* Hero Featured Article */}
+        <section className="container mt-4">
+          <FeaturedArticle article={featuredArticle} />
+        </section>
+
+        {/* Headlines & Latest News */}
+        <section className="container mt-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-headline font-bold text-xl">Headlines & Latest News</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {latestArticles.map((article) => (
+              <NewsCard key={article.id} article={article} />
+            ))}
+          </div>
+        </section>
+
+        {/* Category Sections */}
+        <div className="container mt-4">
+          <CategorySection
+            title="Finance & Business"
+            slug="finance-business"
+            articles={[articles[1], articles[6], articles[0], articles[2]]}
+          />
+          <CategorySection
+            title="Government"
+            slug="government"
+            articles={[articles[4], articles[5], articles[0], articles[3]]}
+          />
+          <CategorySection
+            title="Sports"
+            slug="sports"
+            articles={[articles[3], articles[7], articles[4]]}
+          />
+        </div>
+
+        {/* Newsletter */}
+        <NewsletterSignup />
+      </main>
+
+      <SiteFooter />
     </div>
   );
 };
