@@ -4,7 +4,7 @@ import FeaturedArticle from "@/components/FeaturedArticle";
 import NewsCard from "@/components/NewsCard";
 import CategorySection from "@/components/CategorySection";
 import NewsletterSignup from "@/components/NewsletterSignup";
-import { articles, getArticlesByCategory } from "@/data/mockData";
+import { articles } from "@/data/mockData";
 
 const Index = () => {
   const featuredArticle = articles[0];
@@ -18,7 +18,7 @@ const Index = () => {
         {/* Breaking News Ticker */}
         <div className="bg-primary text-primary-foreground py-1.5">
           <div className="container flex items-center gap-3">
-            <span className="font-body text-xs font-bold uppercase tracking-wider bg-primary-foreground text-primary px-2 py-0.5 rounded-sm flex-shrink-0">
+            <span className="font-body text-[10px] font-bold uppercase tracking-wider bg-primary-foreground text-primary px-2 py-0.5 rounded-sm flex-shrink-0">
               Breaking
             </span>
             <p className="font-body text-xs truncate">
@@ -33,14 +33,29 @@ const Index = () => {
         </section>
 
         {/* Headlines & Latest News */}
-        <section className="container mt-8">
+        <section className="container mt-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-headline font-bold text-xl">Headlines & Latest News</h2>
+            <h2 className="font-headline font-bold text-lg md:text-xl">Headlines & Latest News</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {latestArticles.map((article) => (
               <NewsCard key={article.id} article={article} />
             ))}
+          </div>
+        </section>
+
+        {/* Availability / Breaking News highlight */}
+        <section className="container mt-6">
+          <div className="bg-primary text-primary-foreground p-4 md:p-6 rounded-sm">
+            <span className="font-body text-[10px] font-bold uppercase tracking-wider bg-primary-foreground text-primary px-2 py-0.5 rounded-sm">
+              Breaking News
+            </span>
+            <h2 className="font-headline font-black text-xl md:text-2xl mt-3 leading-tight">
+              {featuredArticle.title}
+            </h2>
+            <p className="font-body text-sm text-primary-foreground/80 mt-2 line-clamp-2">
+              {featuredArticle.description}
+            </p>
           </div>
         </section>
 
