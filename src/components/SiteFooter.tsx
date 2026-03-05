@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import logo from "@/assets/thePostOffice.png";
 
 const SiteFooter = () => {
   return (
@@ -7,8 +8,7 @@ const SiteFooter = () => {
         <div className="flex flex-col md:flex-row justify-between gap-8">
           <div>
             <Link to="/" className="block mb-3">
-              <span className="font-body text-xs font-light italic tracking-wide">the</span>
-              <span className="font-headline font-black text-2xl text-background block -mt-1">Post Office</span>
+              <img src={logo} alt="The Post Office" className="h-5 w-auto" />
             </Link>
             <p className="font-body text-sm text-background/50 max-w-xs">
               Your trusted source for breaking news, in-depth analysis, and compelling stories.

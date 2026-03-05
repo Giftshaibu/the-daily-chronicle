@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Article } from "@/data/mockData";
-import { ArrowRight } from "lucide-react";
-import NewsCard from "./NewsCard";
+import { ArrowRight, Headphones } from "lucide-react";
+import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 
 interface CategorySectionProps {
   title: string;
@@ -10,62 +10,95 @@ interface CategorySectionProps {
 }
 
 const CategorySection = ({ title, slug, articles }: CategorySectionProps) => {
+  const { playArticle } = useAudioPlayer();
+
   if (articles.length === 0) return null;
 
   const mainArticle = articles[0];
   const sideArticles = articles.slice(1, 4);
 
   return (
-    <section className="py-6 border-t border-border">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="font-headline font-bold text-lg md:text-xl text-primary">{title}</h2>
+    <section className="py-8 md:py-12 border-t-[3px] border-primary/90 mt-8">
+      {/* Section Header */}
+      <div className="flex items-center justify-between mb-8">
+        <h2 className="font-headline font-black text-2xl md:text-3xl text-foreground tracking-tight">
+          {title}
+        </h2>
         <Link
           to={`/category/${slug}`}
-          className="flex items-center gap-1 text-primary font-body text-xs font-semibold hover:underline"
+          className="flex items-center gap-1.5 text-primary font-body text-sm font-bold hover:underline group"
         >
-          Read More <ArrowRight className="h-3 w-3" />
+          Read More{" "}
+          <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
         </Link>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Main featured card */}
-        <div className="md:col-span-1">
-          <Link to={`/article/${mainArticle.slug}`} className="group block">
-            <div className="overflow-hidden rounded-sm">
-              <img
-                src={mainArticle.image}
-                alt={mainArticle.title}
-                className="w-full aspect-[4/3] object-cover group-hover:scale-105 transition-transform duration-300"
-                loading="lazy"
-              />
-            </div>
-            <h3 className="font-headline font-bold text-base mt-2 leading-tight group-hover:text-primary transition-colors line-clamp-2">
+
+      {/* Premium Editorial Layout */}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-10">
+        {/* Left Column: Main Featured Article (7 cols on desktop) */}
+        <div className="md:col-span-7 flex flex-col group h-full">
+          <Link to={`/article/${mainArticle.slug}`} className="block relative overflow-hidden rounded-sm mb-5 flex-shrink-0">
+            <img
+              src={mainArticle.image}
+              alt={mainArticle.title}
+              className="w-full aspect-video object-cover hover:scale-[1.02] transition-transform duration-500 ease-out"
+              loading="lazy"
+            />
+          </Link>
+
+          <div className="flex items-center justify-between mb-4 flex-shrink-0">
+            <span className="text-primary text-xs font-body font-bold uppercase tracking-widest">
+              Featured
+            </span>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                playArticle(mainArticle);
+              }}
+              className="flex items-center gap-1.5 text-primary bg-primary/10 hover:bg-primary/20 px-3 py-1.5 rounded-full transition-colors"
+              aria-label="Listen to article"
+            >
+              <Headphones className="h-4 w-4" />
+              <span className="text-xs font-bold uppercase tracking-wide">Listen</span>
+            </button>
+          </div>
+
+          <Link to={`/article/${mainArticle.slug}`} className="block flex-1 flex flex-col">
+            <h3 className="font-headline font-bold text-2xl md:text-4xl leading-[1.15] mb-4 group-hover:text-primary transition-colors">
               {mainArticle.title}
             </h3>
-            <p className="text-muted-foreground text-xs mt-1 font-body line-clamp-2">
+            <p className="text-muted-foreground text-sm md:text-base font-body line-clamp-3 mb-6 leading-relaxed flex-1">
               {mainArticle.description}
+            </p>
+            <p className="text-muted-foreground text-xs md:text-sm font-body font-medium uppercase tracking-wide mt-auto pt-4 border-t border-border">
+              {mainArticle.authorName} <span className="mx-1.5 opacity-50">•</span> {mainArticle.readTime} min read
             </p>
           </Link>
         </div>
-        {/* Side articles */}
-        <div className="md:col-span-2 flex flex-col gap-3">
-          {sideArticles.map((article) => (
-            <Link key={article.id} to={`/article/${article.slug}`} className="flex gap-3 group">
-              <img
-                src={article.image}
-                alt={article.title}
-                className="w-24 h-16 object-cover rounded-sm flex-shrink-0"
-                loading="lazy"
-              />
-              <div className="flex-1 min-w-0">
-                <h4 className="font-headline font-bold text-sm leading-tight group-hover:text-primary transition-colors line-clamp-2">
-                  {article.title}
-                </h4>
-                <p className="text-muted-foreground text-xs mt-1 font-body line-clamp-1">
-                  {article.description}
-                </p>
+
+        {/* Right Column: Stacked Articles (5 cols on desktop) */}
+        <div className="md:col-span-5 flex flex-col md:border-l border-border md:pl-10">
+          <div className="flex flex-col h-full justify-between">
+            {sideArticles.map((article, index) => (
+              <div
+                key={article.id}
+                className={`flex flex-col flex-1 justify-center ${index !== 0 ? 'border-t border-border' : ''} ${index === 0 ? 'pb-5' : index === sideArticles.length - 1 ? 'pt-5' : 'py-5'}`}
+              >
+                <Link to={`/article/${article.slug}`} className="group flex flex-col gap-2">
+                  <span className="text-primary/80 text-[10px] font-body font-bold uppercase tracking-wider">
+                    {article.categoryName}
+                  </span>
+                  <h4 className="font-headline font-bold text-lg md:text-xl leading-snug group-hover:text-primary transition-colors line-clamp-3">
+                    {article.title}
+                  </h4>
+                  <p className="text-muted-foreground text-[11px] font-body mt-2 uppercase tracking-wide opacity-80">
+                    {article.authorName}
+                  </p>
+                </Link>
               </div>
-            </Link>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </section>

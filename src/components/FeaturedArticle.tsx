@@ -13,9 +13,9 @@ const FeaturedArticle = ({ article }: FeaturedArticleProps) => {
         <img
           src={heroImage}
           alt={article.title}
-          className="w-full aspect-[16/9] md:aspect-[21/9] object-cover group-hover:scale-105 transition-transform duration-500"
+          className="w-full aspect-[4/5] sm:aspect-[16/9] md:aspect-[21/9] object-cover object-top md:object-center group-hover:scale-105 transition-transform duration-500"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/20 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-[65%] bg-gradient-to-t from-black via-black/50 to-transparent opacity-90" />
         <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8">
           <span className="inline-block bg-primary text-primary-foreground text-xs font-body font-bold px-3 py-1 rounded-sm uppercase tracking-wider mb-3">
             Breaking News

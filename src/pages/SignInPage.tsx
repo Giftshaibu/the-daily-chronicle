@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import logo1 from "@/assets/thePostOffice1.png";
 
 const SignInPage = () => {
   const [email, setEmail] = useState("");
@@ -9,55 +8,83 @@ const SignInPage = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock sign in
     console.log("Sign in:", email, password);
   };
 
   return (
-    <div className="min-h-screen bg-primary flex flex-col items-center justify-center px-4">
-      <Link to="/" className="text-center mb-10">
-        <span className="font-body text-sm font-light italic text-primary-foreground tracking-wide">the</span>
-        <span className="font-headline font-black text-5xl md:text-7xl text-primary-foreground block -mt-2">
-          Post Office
-        </span>
-      </Link>
+    <div className="min-h-screen flex flex-col md:flex-row">
 
-      <div className="w-full max-w-sm">
-        <h2 className="font-body text-primary-foreground text-center text-sm font-medium mb-6">
-          Sign In with Email & Password
-        </h2>
-
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <Input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="bg-primary-foreground text-foreground font-body h-12 rounded-sm border-none"
-            required
+      {/* ── LEFT / TOP: Logo section ─────────────────────────── */}
+      {/* Desktop: red left half with white logo; Mobile: red strip at top */}
+      <div className="bg-primary flex items-center justify-center px-10 py-12 md:w-1/2 md:min-h-screen">
+        <Link to="/">
+          <img
+            src={logo1}
+            alt="The Post Office"
+            className="w-48 md:w-80 h-auto brightness-0 invert"
           />
-          <Input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="bg-primary-foreground text-foreground font-body h-12 rounded-sm border-none"
-            required
-          />
-          <Button
-            type="submit"
-            className="w-full h-12 bg-foreground text-background font-body font-semibold rounded-sm hover:bg-foreground/90"
-          >
-            Sign In
-          </Button>
-        </form>
+        </Link>
+      </div>
 
-        <p className="text-primary-foreground/70 font-body text-sm text-center mt-6">
-          Don't have an account?{" "}
-          <Link to="/signup" className="text-primary-foreground font-semibold underline">
-            Sign up
-          </Link>
-        </p>
+      {/* ── RIGHT / BOTTOM: Form section ─────────────────────── */}
+      {/* Desktop: white right half with red-accented form card */}
+      <div className="bg-primary md:bg-white flex flex-col items-center justify-center flex-1 px-8 py-14 md:w-1/2 md:min-h-screen">
+
+        {/* White card wrapper (desktop only) */}
+        <div className="w-full max-w-xs bg-white md:shadow-lg rounded-sm px-8 py-10">
+          <h2 className="text-primary font-body text-xl text-center mb-8 leading-snug">
+            Sign In<br />with Email &amp; Password
+          </h2>
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            {/* Email input */}
+            <div className="bg-primary px-4 py-3 rounded-sm">
+              <input
+                type="email"
+                placeholder="Enter Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full bg-transparent text-primary-foreground font-body text-sm outline-none border-b border-primary-foreground placeholder:text-primary-foreground/70"
+              />
+            </div>
+
+            {/* Password input */}
+            <div className="bg-primary px-4 py-3 rounded-sm">
+              <input
+                type="password"
+                placeholder="Enter Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full bg-transparent text-primary-foreground font-body text-sm outline-none border-b border-primary-foreground placeholder:text-primary-foreground/70"
+              />
+            </div>
+
+            {/* Submit */}
+            <button
+              type="submit"
+              className="text-primary font-body text-base underline underline-offset-2 mt-2 hover:opacity-80 transition-opacity text-center"
+            >
+              Sign In
+            </button>
+          </form>
+
+          <div className="text-center mt-6 flex flex-col gap-1">
+            <Link
+              to="/signup"
+              className="text-primary/70 font-body text-xs underline underline-offset-2 hover:opacity-80 transition-opacity"
+            >
+              Don't have an account, go to sign up
+            </Link>
+            <Link
+              to="/forgot-password"
+              className="text-primary/70 font-body text-xs underline underline-offset-2 hover:opacity-80 transition-opacity"
+            >
+              Forgot Email or Password
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );

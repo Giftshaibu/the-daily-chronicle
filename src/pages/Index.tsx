@@ -5,6 +5,8 @@ import NewsCard from "@/components/NewsCard";
 import CategorySection from "@/components/CategorySection";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import { articles } from "@/data/mockData";
+import { Link } from "react-router-dom";
+import { ChevronRight } from "lucide-react";
 
 const Index = () => {
   const featuredArticle = articles[0];
@@ -44,18 +46,51 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Availability / Breaking News highlight */}
-        <section className="container mt-6">
-          <div className="bg-primary text-primary-foreground p-4 md:p-6 rounded-sm">
-            <span className="font-body text-[10px] font-bold uppercase tracking-wider bg-primary-foreground text-primary px-2 py-0.5 rounded-sm">
-              Breaking News
-            </span>
-            <h2 className="font-headline font-black text-xl md:text-2xl mt-3 leading-tight">
-              {featuredArticle.title}
-            </h2>
-            <p className="font-body text-sm text-primary-foreground/80 mt-2 line-clamp-2">
-              {featuredArticle.description}
-            </p>
+        {/* Breaking News Carousel */}
+        <section className="mt-6 overflow-hidden">
+          <div className="container px-0 sm:px-4">
+            <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 px-4 sm:px-0 pb-4 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              <style>{`
+                .scrollbar-hide::-webkit-scrollbar {
+                    display: none;
+                }
+              `}</style>
+
+              {articles.slice(0, 4).map((article) => (
+                <div
+                  key={article.id}
+                  className="bg-primary text-primary-foreground p-4 md:p-6 rounded-sm shrink-0 w-[85vw] md:w-[400px] snap-center flex flex-col"
+                >
+                  <div className="flex justify-between items-start mb-3 border-b border-primary-foreground/30 pb-3">
+                    <span className="font-body text-[10px] font-bold uppercase tracking-wider text-primary-foreground bg-primary-foreground text-primary px-1.5 py-0.5 rounded-sm">
+                      Breaking News
+                    </span>
+                    <span className="font-body text-[10px] font-bold uppercase tracking-wider text-primary-foreground/70 flex items-center gap-1">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                      {article.readTime} min read
+                    </span>
+                  </div>
+
+                  <h2 className="font-headline font-normal text-2xl md:text-3xl leading-tight">
+                    {article.title}
+                  </h2>
+
+                  <p className="font-body text-sm text-primary-foreground/80 mt-3 line-clamp-3 leading-relaxed flex-1">
+                    Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC.
+                  </p>
+
+                  <div className="flex items-center justify-between mt-4 pt-3 border-t border-primary-foreground/30 border-dashed">
+                    <div className="text-[10px] font-body text-primary-foreground/70 uppercase tracking-widest">
+                      Source: The Daily Times
+                    </div>
+                    <Link to={`/article/${article.slug}`} className="text-xs font-bold font-body uppercase tracking-wider flex items-center hover:opacity-80 transition-opacity">
+                      Read More
+                      <ChevronRight className="h-3 w-3 ml-0.5" />
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
