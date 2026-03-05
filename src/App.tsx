@@ -14,6 +14,7 @@ import SignUpPage from "./pages/SignUpPage";
 import AboutPage from "./pages/AboutPage";
 import NotFound from "./pages/NotFound";
 import { AudioPlayerProvider } from "./hooks/useAudioPlayer";
+import { BookmarksProvider } from "./contexts/BookmarksContext";
 import GlobalAudioPlayer from "./components/AudioPlayer";
 
 const queryClient = new QueryClient();
@@ -24,21 +25,23 @@ const App = () => (
       <Toaster />
       <Sonner />
       <AudioPlayerProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/article/:slug" element={<ArticlePage />} />
-            <Route path="/category/:slug" element={<CategoryPage />} />
-            <Route path="/search" element={<SearchPage />} />
-            <Route path="/bookmarks" element={<BookmarksPage />} />
-            <Route path="/listen/:slug" element={<ListenPage />} />
-            <Route path="/signin" element={<SignInPage />} />
-            <Route path="/signup" element={<SignUpPage />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <GlobalAudioPlayer />
-        </BrowserRouter>
+        <BookmarksProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/article/:slug" element={<ArticlePage />} />
+              <Route path="/category/:slug" element={<CategoryPage />} />
+              <Route path="/search" element={<SearchPage />} />
+              <Route path="/bookmarks" element={<BookmarksPage />} />
+              <Route path="/listen/:slug" element={<ListenPage />} />
+              <Route path="/signin" element={<SignInPage />} />
+              <Route path="/signup" element={<SignUpPage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <GlobalAudioPlayer />
+          </BrowserRouter>
+        </BookmarksProvider>
       </AudioPlayerProvider>
     </TooltipProvider>
   </QueryClientProvider>

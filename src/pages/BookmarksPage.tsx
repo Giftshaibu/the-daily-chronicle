@@ -1,14 +1,11 @@
-import { useState } from "react";
 import { Bookmark } from "lucide-react";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import NewsCard from "@/components/NewsCard";
-import { articles } from "@/data/mockData";
+import { useBookmarks } from "@/contexts/BookmarksContext";
 
 const BookmarksPage = () => {
-  // Mock bookmarks - in production would use auth + database
-  const [bookmarkedIds] = useState<string[]>(["2", "4", "7"]);
-  const bookmarkedArticles = articles.filter((a) => bookmarkedIds.includes(a.id));
+  const { bookmarkedArticles } = useBookmarks();
 
   return (
     <div className="min-h-screen flex flex-col bg-background">

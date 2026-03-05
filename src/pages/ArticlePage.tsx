@@ -1,12 +1,16 @@
 import { useParams, Link } from "react-router-dom";
-import { Search } from "lucide-react";
+import { Search, Bookmark, Headphones, Share2 } from "lucide-react";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import { getArticleBySlug, articles } from "@/data/mockData";
+import { useBookmarks } from "@/contexts/BookmarksContext";
+import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 
 const ArticlePage = () => {
   const { slug } = useParams<{ slug: string }>();
   const article = getArticleBySlug(slug || "");
+  const { isBookmarked, toggleBookmark } = useBookmarks();
+  const { playArticle } = useAudioPlayer();
 
   if (!article) {
     return (
@@ -35,8 +39,35 @@ const ArticlePage = () => {
       <SiteHeader />
 
       <main className="flex-1 w-full max-w-[1400px] mx-auto px-6 sm:px-10 md:px-16 lg:px-24 py-6 md:py-10">
+        {/* Category & Actions */}
+        <div className="flex flex-wrap items-center justify-between mb-4 gap-4">
+          <span className="text-primary text-sm font-body font-bold uppercase tracking-wider">
+            {article.categoryName}
+          </span>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => playArticle(article)}
+              className="flex items-center gap-1.5 text-primary bg-primary/10 hover:bg-primary/20 px-3 py-1.5 rounded-full transition-colors"
+              aria-label="Listen to article"
+            >
+              <Headphones className="h-4 w-4" />
+              <span className="text-xs font-bold uppercase tracking-wide">Listen</span>
+            </button>
+            <button
+              onClick={() => toggleBookmark(article.id)}
+              className="flex items-center justify-center bg-primary/10 hover:bg-primary/20 p-2 rounded-full transition-colors text-primary"
+              aria-label="Bookmark"
+            >
+              <Bookmark className="h-4 w-4" fill={isBookmarked(article.id) ? "currentColor" : "none"} />
+            </button>
+            <button className="flex items-center justify-center bg-primary/10 hover:bg-primary/20 p-2 rounded-full transition-colors text-primary" aria-label="Share">
+              <Share2 className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
         {/* Massive Red Headline */}
-        <h1 className="font-headline font-normal text-5xl md:text-7xl lg:text-[3.5rem] leading-[1.05] text-primary tracking-tight mb-8 md:mb-12 max-w-[95%]">
+        <h1 className="font-headline font-normal text-3xl md:text-5xl lg:text-[3.5rem] leading-[1.05] text-primary tracking-tight mb-8 md:mb-12 max-w-[95%]">
           {article.title}
         </h1>
 
@@ -67,7 +98,7 @@ const ArticlePage = () => {
           </div>
 
           {/* COLUMN 3: Search & Related Articles (4 cols) */}
-          <div className="md:col-span-4 flex flex-col h-full">
+          <div className="hidden md:block lg:block md:col-span-4 flex flex-col h-full">
 
             {/* Search Box mimicking the design */}
             <div className="flex items-center w-full mb-8 border border-primary h-12">

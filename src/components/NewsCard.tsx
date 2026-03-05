@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Headphones, Bookmark, Share2, Clock } from "lucide-react";
 import { Article } from "@/data/mockData";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
+import { useBookmarks } from "@/contexts/BookmarksContext";
 
 interface NewsCardProps {
   article: Article;
@@ -10,6 +11,9 @@ interface NewsCardProps {
 
 const NewsCard = ({ article, variant = "default" }: NewsCardProps) => {
   const { playArticle } = useAudioPlayer();
+  const { isBookmarked, toggleBookmark } = useBookmarks();
+
+  const bookmarked = isBookmarked(article.id);
 
   if (variant === "editorial") {
     // New variant matching the dense mobile "newspaper" look
@@ -47,8 +51,16 @@ const NewsCard = ({ article, variant = "default" }: NewsCardProps) => {
               >
                 <Headphones className="h-3.5 w-3.5" />
               </button>
-              <button className="hover:text-primary transition-colors" aria-label="Bookmark">
-                <Bookmark className="h-3.5 w-3.5" />
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  toggleBookmark(article.id);
+                }}
+                className={`hover:text-primary transition-colors ${bookmarked ? 'text-primary' : ''}`}
+                aria-label="Bookmark"
+              >
+                <Bookmark className="h-3.5 w-3.5" fill={bookmarked ? "currentColor" : "none"} />
               </button>
               <button className="hover:text-primary transition-colors" aria-label="Share">
                 <Share2 className="h-3.5 w-3.5" />
@@ -120,18 +132,31 @@ const NewsCard = ({ article, variant = "default" }: NewsCardProps) => {
             <span className="text-primary text-xs font-body font-semibold uppercase tracking-wider">
               {article.categoryName}
             </span>
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                playArticle(article);
-              }}
-              className="flex items-center gap-1.5 text-primary bg-primary/10 hover:bg-primary/20 px-2 py-1 rounded-full transition-colors"
-              aria-label="Listen to article"
-            >
-              <Headphones className="h-3.5 w-3.5" />
-              <span className="text-[10px] font-bold uppercase tracking-wide">Listen</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  playArticle(article);
+                }}
+                className="flex items-center gap-1.5 text-primary bg-primary/10 hover:bg-primary/20 px-2 py-1 rounded-full transition-colors"
+                aria-label="Listen to article"
+              >
+                <Headphones className="h-3.5 w-3.5" />
+                <span className="text-[10px] font-bold uppercase tracking-wide">Listen</span>
+              </button>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  toggleBookmark(article.id);
+                }}
+                className={`flex items-center justify-center bg-primary/10 hover:bg-primary/20 p-1.5 rounded-full transition-colors ${bookmarked ? 'text-primary' : 'text-primary'}`}
+                aria-label="Bookmark"
+              >
+                <Bookmark className="h-3.5 w-3.5" fill={bookmarked ? "currentColor" : "none"} />
+              </button>
+            </div>
           </div>
           <h3 className="font-headline font-bold text-lg leading-tight group-hover:text-primary transition-colors line-clamp-2">
             {article.title}
