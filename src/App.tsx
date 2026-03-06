@@ -17,6 +17,17 @@ import { AudioPlayerProvider } from "./hooks/useAudioPlayer";
 import { BookmarksProvider } from "./contexts/BookmarksContext";
 import GlobalAudioPlayer from "./components/AudioPlayer";
 
+// Admin pages
+import { AdminLayout } from "./components/admin/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminArticles from "./pages/admin/AdminArticles";
+import AdminArticleEditor from "./pages/admin/AdminArticleEditor";
+import AdminCategories from "./pages/admin/AdminCategories";
+import AdminMedia from "./pages/admin/AdminMedia";
+import AdminAnalytics from "./pages/admin/AdminAnalytics";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminSettings from "./pages/admin/AdminSettings";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -37,6 +48,20 @@ const App = () => (
               <Route path="/signin" element={<SignInPage />} />
               <Route path="/signup" element={<SignUpPage />} />
               <Route path="/about" element={<AboutPage />} />
+
+              {/* Admin Dashboard */}
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<AdminDashboard />} />
+                <Route path="articles" element={<AdminArticles />} />
+                <Route path="articles/new" element={<AdminArticleEditor />} />
+                <Route path="articles/:id" element={<AdminArticleEditor />} />
+                <Route path="categories" element={<AdminCategories />} />
+                <Route path="media" element={<AdminMedia />} />
+                <Route path="analytics" element={<AdminAnalytics />} />
+                <Route path="users" element={<AdminUsers />} />
+                <Route path="settings" element={<AdminSettings />} />
+              </Route>
+
               <Route path="*" element={<NotFound />} />
             </Routes>
             <GlobalAudioPlayer />
