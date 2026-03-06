@@ -27,7 +27,12 @@ const ListenPage = () => {
       <main className="flex-1 container py-8">
         <div className="max-w-article mx-auto">
           <img src={article.image} alt={article.title} className="w-full aspect-video object-cover rounded-sm mb-6" />
-          <AudioPlayer title={article.title} author={article.authorName} />
+          {/* Audio player is handled globally */}
+          <div className="bg-secondary rounded-lg p-6 text-center">
+            <p className="font-headline text-xl font-bold mb-2">{article.title}</p>
+            <p className="font-body text-muted-foreground text-sm">By {article.authorName}</p>
+            <p className="font-body text-muted-foreground text-xs mt-4">Use the global audio player to listen to this article.</p>
+          </div>
           <div className="mt-6">
             <Link to={`/article/${article.slug}`} className="text-primary font-body text-sm hover:underline">
               ← Read the full article
