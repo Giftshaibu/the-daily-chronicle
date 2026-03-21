@@ -65,11 +65,40 @@ const App = () => (
                   <Route path="articles" element={<AdminArticles />} />
                   <Route path="articles/new" element={<AdminArticleEditor />} />
                   <Route path="articles/:id" element={<AdminArticleEditor />} />
-                  <Route path="categories" element={<AdminCategories />} />
                   <Route path="media" element={<AdminMedia />} />
-                  <Route path="analytics" element={<AdminAnalytics />} />
-                  <Route path="users" element={<AdminUsers />} />
-                  <Route path="settings" element={<AdminSettings />} />
+                  {/* Admin-only routes – authors are redirected away */}
+                  <Route
+                    path="categories"
+                    element={
+                      <ProtectedRoute allowedRoles={['admin']}>
+                        <AdminCategories />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="analytics"
+                    element={
+                      <ProtectedRoute allowedRoles={['admin']}>
+                        <AdminAnalytics />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="users"
+                    element={
+                      <ProtectedRoute allowedRoles={['admin']}>
+                        <AdminUsers />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="settings"
+                    element={
+                      <ProtectedRoute allowedRoles={['admin']}>
+                        <AdminSettings />
+                      </ProtectedRoute>
+                    }
+                  />
                 </Route>
 
                 <Route path="*" element={<NotFound />} />

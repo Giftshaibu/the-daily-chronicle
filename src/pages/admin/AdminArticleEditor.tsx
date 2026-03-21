@@ -67,6 +67,16 @@ export default function AdminArticleEditor() {
   });
 
   const handleSave = (asDraft: boolean) => {
+    // Validate: a featured image is required to publish
+    if (!asDraft && !imageFile && !previewImageUrl) {
+      toast({
+        title: "Featured image required",
+        description: "A featured image is required to publish this article. Please upload an image or save as a draft.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const formData = new FormData();
     formData.append("title", title);
     formData.append("description", description);
@@ -172,7 +182,15 @@ export default function AdminArticleEditor() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label className="font-body text-sm">Featured Image</Label>
+                <Label className="font-body text-sm">
+                  Featured Image
+                  {isPublished && <span className="text-destructive ml-1">*</span>}
+                </Label>
+                {isPublished && !imageFile && !previewImageUrl && (
+                  <p className="font-body text-xs text-destructive mt-0.5">
+                    Required to publish this article.
+                  </p>
+                )}
                 <Input
                   type="file"
                   accept="image/*"

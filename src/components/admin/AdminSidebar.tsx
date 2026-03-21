@@ -22,8 +22,16 @@ import {
   SidebarHeader,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useAuth } from "@/context/AuthContext";
 
-const menuItems = [
+const authorMenuItems = [
+  { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
+  { title: "Articles", url: "/admin/articles", icon: FileText },
+  { title: "Create Article", url: "/admin/articles/new", icon: PenSquare },
+  { title: "Media Library", url: "/admin/media", icon: Image },
+];
+
+const adminMenuItems = [
   { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
   { title: "Articles", url: "/admin/articles", icon: FileText },
   { title: "Create Article", url: "/admin/articles/new", icon: PenSquare },
@@ -38,6 +46,9 @@ export function AdminSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
+  const { user } = useAuth();
+
+  const menuItems = user?.role === "author" ? authorMenuItems : adminMenuItems;
 
   const isActive = (url: string) => {
     if (url === "/admin") return location.pathname === "/admin";

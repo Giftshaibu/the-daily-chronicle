@@ -8,10 +8,13 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAdminArticles, deleteAdminArticle, updateAdminArticle } from "@/api/admin";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/AuthContext";
 
 export default function AdminArticles() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
 
   const { data: articles = [], isLoading } = useQuery({
     queryKey: ['adminArticles'],
@@ -138,9 +141,11 @@ export default function AdminArticles() {
                             <><Globe className="h-3.5 w-3.5 mr-2" /> Publish</>
                           )}
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDelete(article.id)} className="text-destructive">
-                          <Trash2 className="h-3.5 w-3.5 mr-2" /> Delete
-                        </DropdownMenuItem>
+                        {isAdmin && (
+                          <DropdownMenuItem onClick={() => handleDelete(article.id)} className="text-destructive">
+                            <Trash2 className="h-3.5 w-3.5 mr-2" /> Delete
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
