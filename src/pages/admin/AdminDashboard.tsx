@@ -1,7 +1,8 @@
 import { FileText, FilePen, Globe, Eye, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { adminArticles, recentActivity } from "@/data/adminMockData";
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { getAdminArticles, getAdminActivities } from "@/api/admin";
 
 const stats = [
   { label: "Total Articles", value: "47", icon: FileText, change: "+3 this week" },
@@ -11,6 +12,16 @@ const stats = [
 ];
 
 export default function AdminDashboard() {
+  const { data: adminArticles = [], isLoading: isLoadingArticles } = useQuery({
+    queryKey: ['adminArticles'],
+    queryFn: getAdminArticles,
+  });
+
+  const { data: recentActivity = [], isLoading: isLoadingActivities } = useQuery({
+    queryKey: ['adminActivities'],
+    queryFn: getAdminActivities,
+  });
+
   const recentArticles = adminArticles.slice(0, 5);
 
   return (
@@ -49,7 +60,9 @@ export default function AdminDashboard() {
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
-            {recentArticles.map((article) => (
+            {isLoadingArticles ? (
+              <p className="font-body text-sm text-muted-foreground py-4 text-center">Loading articles...</p>
+            ) : recentArticles.map((article) => (
               <div key={article.id} className="flex items-center justify-between py-2 border-b border-border last:border-0">
                 <div className="min-w-0 flex-1">
                   <p className="font-body text-sm font-medium truncate">{article.title}</p>
@@ -73,7 +86,9 @@ export default function AdminDashboard() {
             <CardTitle className="font-headline text-lg">Recent Activity</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {recentActivity.map((activity) => (
+            {isLoadingActivities ? (
+              <p className="font-body text-sm text-muted-foreground py-4 text-center">Loading activity...</p>
+            ) : recentActivity.map((activity) => (
               <div key={activity.id} className="flex items-start gap-3 py-2 border-b border-border last:border-0">
                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
                   <span className="text-xs font-bold text-primary">{activity.user[0]}</span>

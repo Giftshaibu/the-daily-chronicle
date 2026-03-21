@@ -16,6 +16,8 @@ import NotFound from "./pages/NotFound";
 import { AudioPlayerProvider } from "./hooks/useAudioPlayer";
 import { BookmarksProvider } from "./contexts/BookmarksContext";
 import GlobalAudioPlayer from "./components/AudioPlayer";
+import { AuthProvider } from "./context/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 // Admin pages
 import { AdminLayout } from "./components/admin/AdminLayout";
@@ -32,43 +34,52 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <AudioPlayerProvider>
-        <BookmarksProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/article/:slug" element={<ArticlePage />} />
-              <Route path="/category/:slug" element={<CategoryPage />} />
-              <Route path="/search" element={<SearchPage />} />
-              <Route path="/bookmarks" element={<BookmarksPage />} />
-              <Route path="/listen/:slug" element={<ListenPage />} />
-              <Route path="/signin" element={<SignInPage />} />
-              <Route path="/signup" element={<SignUpPage />} />
-              <Route path="/about" element={<AboutPage />} />
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <AudioPlayerProvider>
+          <BookmarksProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/article/:slug" element={<ArticlePage />} />
+                <Route path="/category/:slug" element={<CategoryPage />} />
+                <Route path="/search" element={<SearchPage />} />
+                <Route path="/bookmarks" element={<BookmarksPage />} />
+                <Route path="/listen/:slug" element={<ListenPage />} />
+                <Route path="/signin" element={<SignInPage />} />
+                <Route path="/signup" element={<SignUpPage />} />
+                <Route path="/about" element={<AboutPage />} />
 
-              {/* Admin Dashboard */}
-              <Route path="/admin" element={<AdminLayout />}>
-                <Route index element={<AdminDashboard />} />
-                <Route path="articles" element={<AdminArticles />} />
-                <Route path="articles/new" element={<AdminArticleEditor />} />
-                <Route path="articles/:id" element={<AdminArticleEditor />} />
-                <Route path="categories" element={<AdminCategories />} />
-                <Route path="media" element={<AdminMedia />} />
-                <Route path="analytics" element={<AdminAnalytics />} />
-                <Route path="users" element={<AdminUsers />} />
-                <Route path="settings" element={<AdminSettings />} />
-              </Route>
+                {/* Admin Dashboard – restricted to admin & author roles */}
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRoute allowedRoles={['admin', 'author']}>
+                      <AdminLayout />
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route index element={<AdminDashboard />} />
+                  <Route path="articles" element={<AdminArticles />} />
+                  <Route path="articles/new" element={<AdminArticleEditor />} />
+                  <Route path="articles/:id" element={<AdminArticleEditor />} />
+                  <Route path="categories" element={<AdminCategories />} />
+                  <Route path="media" element={<AdminMedia />} />
+                  <Route path="analytics" element={<AdminAnalytics />} />
+                  <Route path="users" element={<AdminUsers />} />
+                  <Route path="settings" element={<AdminSettings />} />
+                </Route>
 
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            <GlobalAudioPlayer />
-          </BrowserRouter>
-        </BookmarksProvider>
-      </AudioPlayerProvider>
-    </TooltipProvider>
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              <GlobalAudioPlayer />
+            </BrowserRouter>
+          </BookmarksProvider>
+        </AudioPlayerProvider>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 

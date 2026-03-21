@@ -5,25 +5,48 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { adminArticles, type AdminArticle } from "@/data/adminMockData";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getAdminArticles, deleteAdminArticle, updateAdminArticle } from "@/api/admin";
 import { useToast } from "@/hooks/use-toast";
 
 export default function AdminArticles() {
-  const [articles, setArticles] = useState<AdminArticle[]>(adminArticles);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const { data: articles = [], isLoading } = useQuery({
+    queryKey: ['adminArticles'],
+    queryFn: getAdminArticles,
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteAdminArticle,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminArticles'] });
+      toast({ title: "Article deleted" });
+    },
+    onError: () => toast({ title: "Failed to delete article", variant: "destructive" }),
+  });
+
+  const togglePublishMutation = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: "published" | "draft" }) => {
+      const formData = new FormData();
+      formData.append("status", status);
+      return updateAdminArticle(id, formData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminArticles'] });
+      toast({ title: "Article status updated" });
+    },
+    onError: () => toast({ title: "Failed to update article status", variant: "destructive" }),
+  });
 
   const handleDelete = (id: string) => {
-    setArticles(articles.filter((a) => a.id !== id));
-    toast({ title: "Article deleted" });
+    deleteMutation.mutate(id);
   };
 
-  const handleTogglePublish = (id: string) => {
-    setArticles(articles.map((a) =>
-      a.id === id
-        ? { ...a, status: a.status === "published" ? "draft" : "published", publishedAt: a.status === "published" ? null : new Date().toISOString() }
-        : a
-    ));
-    toast({ title: "Article status updated" });
+  const handleTogglePublish = (article: any) => {
+    const newStatus = article.status === "published" ? "draft" : "published";
+    togglePublishMutation.mutate({ id: article.id, status: newStatus });
   };
 
   const formatDate = (date: string | null) => {
@@ -60,7 +83,19 @@ export default function AdminArticles() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {articles.map((article) => (
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center font-body py-8 text-muted-foreground">
+                    Loading articles...
+                  </TableCell>
+                </TableRow>
+              ) : articles.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center font-body py-8 text-muted-foreground">
+                    No articles found.
+                  </TableCell>
+                </TableRow>
+              ) : articles.map((article) => (
                 <TableRow key={article.id}>
                   <TableCell>
                     <p className="font-body text-sm font-medium line-clamp-1">{article.title}</p>
@@ -96,7 +131,7 @@ export default function AdminArticles() {
                             <Pencil className="h-3.5 w-3.5 mr-2" /> Edit
                           </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleTogglePublish(article.id)}>
+                        <DropdownMenuItem onClick={() => handleTogglePublish(article)}>
                           {article.status === "published" ? (
                             <><EyeOff className="h-3.5 w-3.5 mr-2" /> Unpublish</>
                           ) : (

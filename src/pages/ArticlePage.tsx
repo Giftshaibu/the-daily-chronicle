@@ -1,16 +1,39 @@
 import { useParams, Link } from "react-router-dom";
-import { Search, Bookmark, Headphones, Share2 } from "lucide-react";
+import { Search, Bookmark, Headphones, Share2, Loader2 } from "lucide-react";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
-import { getArticleBySlug, articles } from "@/data/mockData";
 import { useBookmarks } from "@/contexts/BookmarksContext";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
+import { useQuery } from "@tanstack/react-query";
+import { getPostBySlugOrId, getPosts } from "@/api/posts";
 
 const ArticlePage = () => {
   const { slug } = useParams<{ slug: string }>();
-  const article = getArticleBySlug(slug || "");
   const { isBookmarked, toggleBookmark } = useBookmarks();
   const { playArticle } = useAudioPlayer();
+
+  const { data: article, isLoading } = useQuery({
+    queryKey: ['post', slug],
+    queryFn: () => getPostBySlugOrId(slug || ""),
+    enabled: !!slug,
+  });
+
+  const { data: allPosts } = useQuery({
+    queryKey: ['posts'],
+    queryFn: getPosts,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <SiteHeader />
+        <main className="flex-1 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </main>
+        <SiteFooter />
+      </div>
+    );
+  }
 
   if (!article) {
     return (
@@ -27,7 +50,7 @@ const ArticlePage = () => {
     );
   }
 
-  const relatedArticles = articles.filter((a) => a.id !== article.id).slice(0, 3);
+  const relatedArticles = allPosts ? allPosts.filter((a) => a.id !== article.id).slice(0, 3) : [];
 
   // Dummy text to match the design's dense layout
   const dummyText1 = `Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32.`;
@@ -76,16 +99,17 @@ const ArticlePage = () => {
 
           {/* COLUMN 1: Image & Text (4 cols) */}
           <div className="md:col-span-4 flex flex-col gap-4">
-            <img
-              src={article.image}
-              alt={article.title}
-              className="w-full aspect-[4/3] object-cover border border-border/50"
+            {article.image && (
+              <img
+                src={article.image}
+                alt={article.title}
+                className="w-full aspect-[4/3] object-cover border border-border/50"
+              />
+            )}
+            <div 
+              className="font-headline text-sm leading-relaxed text-foreground text-justify prose prose-sm max-w-none"
+              dangerouslySetInnerHTML={{ __html: article.content }}
             />
-            <div className="font-headline text-sm leading-relaxed text-foreground text-justify">
-              {dummyText1}
-              <br /><br />
-              {dummyText2}
-            </div>
           </div>
 
           {/* COLUMN 2: Text Only (4 cols) */}

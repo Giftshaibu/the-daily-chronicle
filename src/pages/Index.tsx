@@ -4,13 +4,44 @@ import FeaturedArticle from "@/components/FeaturedArticle";
 import NewsCard from "@/components/NewsCard";
 import CategorySection from "@/components/CategorySection";
 import NewsletterSignup from "@/components/NewsletterSignup";
-import { articles } from "@/data/mockData";
+import { useQuery } from "@tanstack/react-query";
+import { getPosts } from "@/api/posts";
 import { Link } from "react-router-dom";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Loader2 } from "lucide-react";
 
 const Index = () => {
-  const featuredArticle = articles[0];
-  const latestArticles = articles.slice(1, 4);
+  const { data: articles, isLoading } = useQuery({
+    queryKey: ['posts'],
+    queryFn: getPosts,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <SiteHeader />
+        <main className="flex-1 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </main>
+        <SiteFooter />
+      </div>
+    );
+  }
+
+  const safeArticles = articles || [];
+  const featuredArticle = safeArticles[0];
+  const latestArticles = safeArticles.slice(1, 4);
+
+  if (!featuredArticle) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <SiteHeader />
+        <main className="flex-1 flex items-center justify-center">
+          <p>No articles found</p>
+        </main>
+        <SiteFooter />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -56,7 +87,7 @@ const Index = () => {
                 }
               `}</style>
 
-              {articles.slice(0, 4).map((article) => (
+              {safeArticles.slice(0, 4).map((article) => (
                 <div
                   key={article.id}
                   className="bg-primary text-primary-foreground p-4 md:p-6 rounded-sm shrink-0 w-[85vw] md:w-[400px] snap-center flex flex-col"
@@ -99,17 +130,17 @@ const Index = () => {
           <CategorySection
             title="Finance & Business"
             slug="finance-business"
-            articles={[articles[1], articles[6], articles[0], articles[2]]}
+            articles={[safeArticles[1], safeArticles[6], safeArticles[0], safeArticles[2]].filter(Boolean)}
           />
           <CategorySection
             title="Government"
             slug="government"
-            articles={[articles[4], articles[5], articles[0], articles[3]]}
+            articles={[safeArticles[4], safeArticles[5], safeArticles[0], safeArticles[3]].filter(Boolean)}
           />
           <CategorySection
             title="Sports"
             slug="sports"
-            articles={[articles[3], articles[7], articles[4]]}
+            articles={[safeArticles[3], safeArticles[7], safeArticles[4]].filter(Boolean)}
           />
         </div>
 

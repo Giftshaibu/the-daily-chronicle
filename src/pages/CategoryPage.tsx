@@ -2,24 +2,47 @@ import { useParams } from "react-router-dom";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import NewsCard from "@/components/NewsCard";
-import { getArticlesByCategory, categories, articles } from "@/data/mockData";
+import { useQuery } from "@tanstack/react-query";
+import { getPosts } from "@/api/posts";
+import { getCategories } from "@/api/categories";
+import { Loader2 } from "lucide-react";
 
 const CategoryPage = () => {
   const { slug } = useParams<{ slug: string }>();
-  const category = categories.find((c) => c.slug === slug);
   
-  // For simple category slugs like "politics", match against categorySlug
-  let categoryArticles = getArticlesByCategory(slug || "");
+  const { data: categories } = useQuery({
+    queryKey: ['categories'],
+    queryFn: getCategories,
+  });
   
-  // If no articles found, try matching by name
-  if (categoryArticles.length === 0) {
-    categoryArticles = articles.filter(
-      (a) => a.categoryName.toLowerCase() === slug?.toLowerCase()
+  const { data: articles, isLoading } = useQuery({
+    queryKey: ['posts'],
+    queryFn: getPosts,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <SiteHeader />
+        <main className="flex-1 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </main>
+        <SiteFooter />
+      </div>
     );
   }
 
-  // Fallback: show all articles for demo
+  const category = categories?.find((c) => c.slug === slug);
+  
+  let categoryArticles = articles?.filter((a) => a.categorySlug === slug) || [];
+  
   if (categoryArticles.length === 0) {
+    categoryArticles = articles?.filter(
+      (a) => a.categoryName.toLowerCase() === slug?.toLowerCase()
+    ) || [];
+  }
+
+  if (categoryArticles.length === 0 && articles) {
     categoryArticles = articles.slice(0, 6);
   }
 

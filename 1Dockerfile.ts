@@ -6,13 +6,8 @@ WORKDIR /app
 # Copy package configuration files
 COPY package.json package-lock.json ./
 
-# Install dependencies (ci ensures a clean, reproducible install from lockfile)
+# Install dependencies
 RUN npm ci
-
-# Build-time environment variable for the backend API URL
-# Override at build time with: --build-arg VITE_API_BASE_URL=https://your-api.com/api
-ARG VITE_API_BASE_URL
-ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
 # Copy the rest of the application code
 COPY . .

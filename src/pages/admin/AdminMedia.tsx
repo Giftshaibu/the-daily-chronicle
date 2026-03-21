@@ -2,16 +2,53 @@ import { useState } from "react";
 import { Upload, Trash2, Image, Music } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { mediaItems as initialMedia, type MediaItem } from "@/data/adminMockData";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getAdminMedia, uploadAdminMedia, deleteAdminMedia } from "@/api/admin";
 import { useToast } from "@/hooks/use-toast";
+import { useRef } from "react";
 
 export default function AdminMedia() {
-  const [media, setMedia] = useState<MediaItem[]>(initialMedia);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { data: media = [], isLoading } = useQuery({
+    queryKey: ['adminMedia'],
+    queryFn: getAdminMedia,
+  });
+
+  const uploadMutation = useMutation({
+    mutationFn: uploadAdminMedia,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminMedia'] });
+      toast({ title: "Media uploaded successfully" });
+    },
+    onError: () => toast({ title: "Failed to upload media", variant: "destructive" }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteAdminMedia,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminMedia'] });
+      toast({ title: "Media deleted" });
+    },
+    onError: () => toast({ title: "Failed to delete media", variant: "destructive" }),
+  });
 
   const handleDelete = (id: string) => {
-    setMedia(media.filter((m) => m.id !== id));
-    toast({ title: "Media deleted" });
+    if (window.confirm("Are you sure you want to delete this file?")) {
+      deleteMutation.mutate(id);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const formData = new FormData();
+      formData.append("file", file);
+      uploadMutation.mutate(formData);
+    }
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const images = media.filter((m) => m.type === "image");
@@ -22,11 +59,14 @@ export default function AdminMedia() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-headline text-2xl font-bold">Media Library</h1>
-          <p className="font-body text-sm text-muted-foreground">{media.length} files</p>
+          <p className="font-body text-sm text-muted-foreground">{isLoading ? "Loading..." : `${media.length} files`}</p>
         </div>
-        <Button>
-          <Upload className="h-4 w-4 mr-2" /> Upload
-        </Button>
+        <div>
+          <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileChange} />
+          <Button onClick={() => fileInputRef.current?.click()} disabled={uploadMutation.isPending}>
+            <Upload className="h-4 w-4 mr-2" /> {uploadMutation.isPending ? "Uploading..." : "Upload"}
+          </Button>
+        </div>
       </div>
 
       {/* Images */}

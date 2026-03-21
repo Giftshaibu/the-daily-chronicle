@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Save, Globe, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,34 +8,80 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { categories } from "@/data/mockData";
-import { adminArticles } from "@/data/adminMockData";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getAdminArticle, createAdminArticle, updateAdminArticle, getAdminCategories } from "@/api/admin";
 import { useToast } from "@/hooks/use-toast";
 
 export default function AdminArticleEditor() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const isNew = !id || id === "new";
 
-  const existing = !isNew ? adminArticles.find((a) => a.id === id) : null;
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [content, setContent] = useState("");
+  const [categoryId, setCategoryId] = useState("");
+  const [isPublished, setIsPublished] = useState(false);
+  
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [audioFile, setAudioFile] = useState<File | null>(null);
+  const [previewImageUrl, setPreviewImageUrl] = useState("");
+  const [existingAudioUrl, setExistingAudioUrl] = useState("");
 
-  const [title, setTitle] = useState(existing?.title || "");
-  const [description, setDescription] = useState(existing?.description || "");
-  const [content, setContent] = useState(existing?.content || "");
-  const [categoryId, setCategoryId] = useState(existing?.categoryId || "");
-  const [imageUrl, setImageUrl] = useState(existing?.image || "");
-  const [audioUrl, setAudioUrl] = useState(existing?.audioUrl || "");
-  const [isPublished, setIsPublished] = useState(existing?.status === "published");
-  const [tags, setTags] = useState("");
+  const { data: categories = [] } = useQuery({
+    queryKey: ['adminCategories'],
+    queryFn: getAdminCategories,
+  });
+
+  const { data: existingArticle, isLoading } = useQuery({
+    queryKey: ['adminArticle', id],
+    queryFn: () => getAdminArticle(id!),
+    enabled: !isNew,
+  });
+
+  useEffect(() => {
+    if (existingArticle) {
+      setTitle(existingArticle.title || "");
+      setDescription(existingArticle.description || "");
+      setContent(existingArticle.content || "");
+      setCategoryId(existingArticle.categoryId || "");
+      setIsPublished(existingArticle.status === "published");
+      setPreviewImageUrl(existingArticle.image || "");
+      setExistingAudioUrl(existingArticle.audioUrl || "");
+    }
+  }, [existingArticle]);
+
+  const saveMutation = useMutation({
+    mutationFn: (formData: FormData) => {
+      if (isNew) return createAdminArticle(formData);
+      return updateAdminArticle(id!, formData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminArticles'] });
+      toast({ title: "Article saved successfully" });
+      navigate("/admin/articles");
+    },
+    onError: () => toast({ title: "Failed to save article", variant: "destructive" }),
+  });
 
   const handleSave = (asDraft: boolean) => {
-    toast({
-      title: asDraft ? "Draft saved" : "Article published",
-      description: `"${title}" has been ${asDraft ? "saved as draft" : "published"}.`,
-    });
-    navigate("/admin/articles");
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("description", description);
+    formData.append("content", content);
+    formData.append("category_id", categoryId);
+    formData.append("status", asDraft ? "draft" : "published");
+    if (imageFile) formData.append("image", imageFile);
+    if (audioFile) formData.append("audio", audioFile);
+
+    saveMutation.mutate(formData);
   };
+
+  if (isLoading) {
+    return <div className="p-8 text-center text-muted-foreground font-body">Loading article...</div>;
+  }
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -45,20 +91,19 @@ export default function AdminArticleEditor() {
         </Button>
         <div className="flex-1">
           <h1 className="font-headline text-2xl font-bold">{isNew ? "Create Article" : "Edit Article"}</h1>
-          <p className="font-body text-sm text-muted-foreground">{isNew ? "Write a new article" : `Editing: ${existing?.title}`}</p>
+          <p className="font-body text-sm text-muted-foreground">{isNew ? "Write a new article" : `Editing: ${title}`}</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => handleSave(true)}>
-            <Save className="h-4 w-4 mr-2" /> Save Draft
+          <Button variant="outline" onClick={() => handleSave(true)} disabled={saveMutation.isPending}>
+            <Save className="h-4 w-4 mr-2" /> {saveMutation.isPending ? "Saving..." : "Save Draft"}
           </Button>
-          <Button onClick={() => handleSave(false)}>
-            <Globe className="h-4 w-4 mr-2" /> Publish
+          <Button onClick={() => handleSave(false)} disabled={saveMutation.isPending}>
+            <Globe className="h-4 w-4 mr-2" /> {saveMutation.isPending ? "Saving..." : "Publish"}
           </Button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main editor */}
         <div className="lg:col-span-2 space-y-4">
           <Card className="bg-background">
             <CardContent className="p-4 space-y-4">
@@ -95,7 +140,6 @@ export default function AdminArticleEditor() {
           </Card>
         </div>
 
-        {/* Sidebar settings */}
         <div className="space-y-4">
           <Card className="bg-background">
             <CardHeader className="pb-3">
@@ -115,15 +159,6 @@ export default function AdminArticleEditor() {
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label className="font-body text-sm">Tags</Label>
-                <Input
-                  value={tags}
-                  onChange={(e) => setTags(e.target.value)}
-                  placeholder="politics, economy, breaking"
-                  className="mt-1"
-                />
-              </div>
               <div className="flex items-center justify-between">
                 <Label className="font-body text-sm">Publish</Label>
                 <Switch checked={isPublished} onCheckedChange={setIsPublished} />
@@ -137,32 +172,37 @@ export default function AdminArticleEditor() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label className="font-body text-sm">Featured Image URL</Label>
+                <Label className="font-body text-sm">Featured Image</Label>
                 <Input
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  placeholder="https://..."
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setImageFile(e.target.files?.[0] || null)}
                   className="mt-1"
                 />
-                {imageUrl && (
-                  <img src={imageUrl} alt="Preview" className="mt-2 w-full aspect-video object-cover rounded-sm" />
+                {!imageFile && previewImageUrl && (
+                  <img src={previewImageUrl} alt="Preview" className="mt-2 w-full aspect-video object-cover rounded-sm" />
                 )}
               </div>
               <div>
-                <Label className="font-body text-sm">Audio URL</Label>
+                <Label className="font-body text-sm">Audio File</Label>
                 <Input
-                  value={audioUrl}
-                  onChange={(e) => setAudioUrl(e.target.value)}
-                  placeholder="https://..."
+                  type="file"
+                  accept="audio/*"
+                  onChange={(e) => setAudioFile(e.target.files?.[0] || null)}
                   className="mt-1"
                 />
+                {!audioFile && existingAudioUrl && (
+                  <p className="mt-1 font-body text-xs text-muted-foreground truncate">Current: {existingAudioUrl.split('/').pop()}</p>
+                )}
               </div>
             </CardContent>
           </Card>
 
-          <Button variant="outline" className="w-full" onClick={() => window.open(`/article/${existing?.slug || "preview"}`, "_blank")}>
-            <Eye className="h-4 w-4 mr-2" /> Preview Article
-          </Button>
+          {!isNew && (
+            <Button variant="outline" className="w-full" onClick={() => window.open(`/article/${existingArticle?.slug}`, "_blank")}>
+              <Eye className="h-4 w-4 mr-2" /> View Public Article
+            </Button>
+          )}
         </div>
       </div>
     </div>

@@ -4,36 +4,69 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { categories as initialCategories, type Category } from "@/data/mockData";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getAdminCategories, createAdminCategory, updateAdminCategory, deleteAdminCategory } from "@/api/admin";
+import { type Category } from "@/types/api";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 
 export default function AdminCategories() {
-  const [cats, setCats] = useState<Category[]>(initialCategories);
   const [editingCat, setEditingCat] = useState<Category | null>(null);
   const [newName, setNewName] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const { data: cats = [], isLoading } = useQuery({
+    queryKey: ['adminCategories'],
+    queryFn: getAdminCategories,
+  });
+
+  const createMutation = useMutation({
+    mutationFn: createAdminCategory,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminCategories'] });
+      toast({ title: "Category created" });
+      setDialogOpen(false);
+    },
+    onError: () => toast({ title: "Failed to create category", variant: "destructive" }),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: { name: string; slug: string } }) => updateAdminCategory(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminCategories'] });
+      toast({ title: "Category updated" });
+      setDialogOpen(false);
+    },
+    onError: () => toast({ title: "Failed to update category", variant: "destructive" }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteAdminCategory,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminCategories'] });
+      toast({ title: "Category deleted" });
+    },
+    onError: () => toast({ title: "Failed to delete category", variant: "destructive" }),
+  });
 
   const handleSave = () => {
     if (!newName.trim()) return;
+    const slug = newName.toLowerCase().replace(/\s+/g, "-");
+    
     if (editingCat) {
-      setCats(cats.map((c) => c.id === editingCat.id ? { ...c, name: newName, slug: newName.toLowerCase().replace(/\s+/g, "-") } : c));
-      toast({ title: "Category updated" });
+      updateMutation.mutate({ id: editingCat.id, data: { name: newName, slug } });
     } else {
-      const newCat: Category = { id: String(Date.now()), name: newName, slug: newName.toLowerCase().replace(/\s+/g, "-") };
-      setCats([...cats, newCat]);
-      toast({ title: "Category created" });
+      createMutation.mutate({ name: newName, slug });
     }
-    setNewName("");
-    setEditingCat(null);
-    setDialogOpen(false);
   };
 
   const handleDelete = (id: string) => {
-    setCats(cats.filter((c) => c.id !== id));
-    toast({ title: "Category deleted" });
+    if (window.confirm("Are you sure you want to delete this category?")) {
+      deleteMutation.mutate(id);
+    }
   };
 
   const openEdit = (cat: Category) => {
@@ -85,7 +118,19 @@ export default function AdminCategories() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {cats.map((cat) => (
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={3} className="text-center font-body py-8 text-muted-foreground">
+                    Loading categories...
+                  </TableCell>
+                </TableRow>
+              ) : cats.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={3} className="text-center font-body py-8 text-muted-foreground">
+                    No categories found.
+                  </TableCell>
+                </TableRow>
+              ) : cats.map((cat) => (
                 <TableRow key={cat.id}>
                   <TableCell className="font-body text-sm font-medium">{cat.name}</TableCell>
                   <TableCell className="font-body text-sm text-muted-foreground">{cat.slug}</TableCell>

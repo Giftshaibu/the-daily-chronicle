@@ -1,21 +1,42 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import logo1 from "@/assets/thePostOffice1.png";
+import { useMutation } from "@tanstack/react-query";
+import { login } from "@/api/auth";
+import { useAuth } from "@/context/AuthContext";
 
 const SignInPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+  const navigate = useNavigate();
+  const { setAuth } = useAuth();
+
+  const loginMutation = useMutation({
+    mutationFn: () => login(email, password),
+    onSuccess: (data) => {
+      setAuth(data.user, data.access_token);
+      if (data.user.role === 'admin' || data.user.role === 'author') {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
+    },
+    onError: () => {
+      setErrorMsg("Invalid email or password. Please try again.");
+    },
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Sign in:", email, password);
+    setErrorMsg("");
+    loginMutation.mutate();
   };
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
 
       {/* ── LEFT / TOP: Logo section ─────────────────────────── */}
-      {/* Desktop: red left half with white logo; Mobile: red strip at top */}
       <div className="bg-primary flex items-center justify-center px-10 py-12 md:w-1/2 md:min-h-screen">
         <Link to="/">
           <img
@@ -27,17 +48,19 @@ const SignInPage = () => {
       </div>
 
       {/* ── RIGHT / BOTTOM: Form section ─────────────────────── */}
-      {/* Desktop: white right half with red-accented form card */}
       <div className="bg-primary md:bg-white flex flex-col items-center justify-center flex-1 px-8 py-14 md:w-1/2 md:min-h-screen">
 
-        {/* White card wrapper (desktop only) */}
+        {/* White card wrapper */}
         <div className="w-full max-w-xs bg-white md:shadow-lg rounded-sm px-8 py-10">
           <h2 className="text-primary font-body text-xl text-center mb-8 leading-snug">
             Sign In<br />with Email &amp; Password
           </h2>
 
+          {errorMsg && (
+            <p className="text-sm text-red-600 font-body text-center mb-4">{errorMsg}</p>
+          )}
+
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            {/* Email input */}
             <div className="bg-primary px-4 py-3 rounded-sm">
               <input
                 type="email"
@@ -49,7 +72,6 @@ const SignInPage = () => {
               />
             </div>
 
-            {/* Password input */}
             <div className="bg-primary px-4 py-3 rounded-sm">
               <input
                 type="password"
@@ -61,12 +83,12 @@ const SignInPage = () => {
               />
             </div>
 
-            {/* Submit */}
             <button
               type="submit"
-              className="text-primary font-body text-base underline underline-offset-2 mt-2 hover:opacity-80 transition-opacity text-center"
+              disabled={loginMutation.isPending}
+              className="text-primary font-body text-base underline underline-offset-2 mt-2 hover:opacity-80 transition-opacity text-center disabled:opacity-50"
             >
-              Sign In
+              {loginMutation.isPending ? "Signing in..." : "Sign In"}
             </button>
           </form>
 
@@ -76,12 +98,6 @@ const SignInPage = () => {
               className="text-primary/70 font-body text-xs underline underline-offset-2 hover:opacity-80 transition-opacity"
             >
               Don't have an account, go to sign up
-            </Link>
-            <Link
-              to="/forgot-password"
-              className="text-primary/70 font-body text-xs underline underline-offset-2 hover:opacity-80 transition-opacity"
-            >
-              Forgot Email or Password
             </Link>
           </div>
         </div>

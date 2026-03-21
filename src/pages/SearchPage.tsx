@@ -1,14 +1,20 @@
 import { useState } from "react";
-import { Search } from "lucide-react";
+import { Search, Loader2 } from "lucide-react";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import NewsCard from "@/components/NewsCard";
-import { searchArticles } from "@/data/mockData";
+import { useQuery } from "@tanstack/react-query";
+import { searchPosts } from "@/api/posts";
 import { Input } from "@/components/ui/input";
 
 const SearchPage = () => {
   const [query, setQuery] = useState("");
-  const results = query.length > 1 ? searchArticles(query) : [];
+  
+  const { data: results = [], isLoading } = useQuery({
+    queryKey: ['search', query],
+    queryFn: () => searchPosts(query),
+    enabled: query.length > 1,
+  });
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -25,13 +31,18 @@ const SearchPage = () => {
             className="pl-10 font-body"
           />
         </div>
-        {query.length > 1 && (
+        {query.length > 1 && !isLoading && (
           <p className="font-body text-sm text-muted-foreground mb-4">
             {results.length} result{results.length !== 1 ? "s" : ""} for "{query}"
           </p>
         )}
+        {isLoading && query.length > 1 && (
+          <div className="flex items-center justify-center py-10">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {results.map((article) => (
+          {!isLoading && results.map((article) => (
             <NewsCard key={article.id} article={article} />
           ))}
         </div>

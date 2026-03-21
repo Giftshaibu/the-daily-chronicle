@@ -1,13 +1,19 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Menu, Search } from "lucide-react";
-import { categories } from "@/data/mockData";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
+import { getCategories } from "@/api/categories";
 import logo from "@/assets/thePostOffice.png";
 
 const SiteHeader = () => {
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const { data: categories = [] } = useQuery({
+    queryKey: ['categories'],
+    queryFn: getCategories,
+  });
 
   return (
     <>
@@ -128,13 +134,13 @@ const SiteHeader = () => {
       {/* ── CATEGORY NAV BAR (both desktop & mobile) ───────────────── */}
       <nav className="bg-nav text-nav-foreground overflow-x-auto justify-center">
         <div className="container flex items-center justify-center gap-0">
-          {["Government", "Politics", "Finance", "health&Lifestyle", "Sports", "Entertainment", "tech"].map((item) => (
+          {categories.map((item) => (
             <Link
-              key={item}
-              to={item === "Government" ? "/" : `/category/${item.toLowerCase().replace("&", "-")}`}
+              key={item.id}
+              to={`/category/${item.slug}`}
               className="px-4 py-2 text-xs font-body font-medium whitespace-nowrap hover:bg-primary transition-colors"
             >
-              {item}
+              {item.name}
             </Link>
           ))}
         </div>

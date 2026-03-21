@@ -2,11 +2,30 @@ import { useParams, Link } from "react-router-dom";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import AudioPlayer from "@/components/AudioPlayer";
-import { getArticleBySlug } from "@/data/mockData";
+import { useQuery } from "@tanstack/react-query";
+import { getPostBySlugOrId } from "@/api/posts";
+import { Loader2 } from "lucide-react";
 
 const ListenPage = () => {
   const { slug } = useParams<{ slug: string }>();
-  const article = getArticleBySlug(slug || "");
+  
+  const { data: article, isLoading } = useQuery({
+    queryKey: ['post', slug],
+    queryFn: () => getPostBySlugOrId(slug || ""),
+    enabled: !!slug,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <SiteHeader />
+        <main className="flex-1 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </main>
+        <SiteFooter />
+      </div>
+    );
+  }
 
   if (!article) {
     return (
