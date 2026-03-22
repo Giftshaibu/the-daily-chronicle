@@ -4,6 +4,7 @@ import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import { useBookmarks } from "@/contexts/BookmarksContext";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
+import NewsCard from "@/components/NewsCard";
 import { useQuery } from "@tanstack/react-query";
 import { getPostBySlugOrId, getPosts } from "@/api/posts";
 
@@ -51,11 +52,8 @@ const ArticlePage = () => {
   }
 
   const relatedArticles = allPosts ? allPosts.filter((a) => a.id !== article.id).slice(0, 3) : [];
+  const otherNews = allPosts ? allPosts.filter((a) => a.id !== article.id).slice(3, 7) : [];
 
-  // Dummy text to match the design's dense layout
-  const dummyText1 = `Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32.`;
-
-  const dummyText2 = `Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32.`;
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -68,14 +66,16 @@ const ArticlePage = () => {
             {article.categoryName}
           </span>
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => playArticle(article)}
-              className="flex items-center gap-1.5 text-primary bg-primary/10 hover:bg-primary/20 px-3 py-1.5 rounded-full transition-colors"
-              aria-label="Listen to article"
-            >
-              <Headphones className="h-4 w-4" />
-              <span className="text-xs font-bold uppercase tracking-wide">Listen</span>
-            </button>
+            {article.audioUrl && (
+              <button
+                onClick={() => playArticle(article)}
+                className="flex items-center gap-1.5 text-primary bg-primary/10 hover:bg-primary/20 px-3 py-1.5 rounded-full transition-colors"
+                aria-label="Listen to article"
+              >
+                <Headphones className="h-4 w-4" />
+                <span className="text-xs font-bold uppercase tracking-wide">Listen</span>
+              </button>
+            )}
             <button
               onClick={() => toggleBookmark(article.id)}
               className="flex items-center justify-center bg-primary/10 hover:bg-primary/20 p-2 rounded-full transition-colors text-primary"
@@ -97,27 +97,17 @@ const ArticlePage = () => {
         {/* 3-Column Newspaper Layout */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-10">
 
-          {/* COLUMN 1: Image & Text (4 cols) */}
-          <div className="md:col-span-4 flex flex-col gap-4">
-            {article.image && (
-              <img
-                src={article.image}
-                alt={article.title}
-                className="w-full aspect-[4/3] object-cover border border-border/50"
-              />
-            )}
-            <div 
-              className="font-headline text-sm leading-relaxed text-foreground text-justify prose prose-sm max-w-none"
-              dangerouslySetInnerHTML={{ __html: article.content }}
-            />
-          </div>
-
-          {/* COLUMN 2: Text Only (4 cols) */}
-          <div className="md:col-span-4 flex flex-col pb-4 h-full md:border-r md:border-border md:pr-10">
-            <div className="font-headline text-sm leading-relaxed text-foreground text-justify">
-              {dummyText1}
-              <br /><br />
-              {dummyText2}
+          {/* Main Content (8 cols) */}
+          <div className="md:col-span-8 flex flex-col pb-4 h-full md:border-r md:border-border md:pr-10">
+            <div className="font-headline text-sm leading-relaxed text-foreground text-justify prose prose-sm max-w-none md:columns-2 md:gap-10">
+              {article.image && (
+                <img
+                  src={article.image}
+                  alt={article.title}
+                  className="w-full aspect-[4/3] object-cover border border-border/50 mb-4 inline-block break-inside-avoid"
+                />
+              )}
+              <div dangerouslySetInnerHTML={{ __html: article.content }} />
             </div>
           </div>
 
@@ -147,7 +137,7 @@ const ArticlePage = () => {
                     {rel.title}
                   </h3>
                   <p className="font-headline text-sm text-muted-foreground leading-snug">
-                    Lorem Ipsum is simply dummy text of the printing and typesetting industry....
+                    {rel.description || "Read more about this story inside."}
                   </p>
                   <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/40 border-dashed">
                     <span className="text-[10px] font-body text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
@@ -168,9 +158,14 @@ const ArticlePage = () => {
 
         {/* Other Selected News Header at bottom of main content */}
         <div className="mt-16 pt-4 border-t-2 border-primary">
-          <h2 className="font-headline text-2xl text-primary font-bold">
+          <h2 className="font-headline text-2xl text-primary font-bold mb-6">
             Other Selected News
           </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {otherNews.map(news => (
+               <NewsCard key={news.id} article={news} variant="compact" />
+            ))}
+          </div>
         </div>
       </main>
 

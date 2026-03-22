@@ -29,7 +29,7 @@ const NewsCard = ({ article, variant = "default" }: NewsCardProps) => {
             {article.title}
           </h3>
           <p className="text-foreground/80 text-sm font-headline leading-relaxed line-clamp-2 mt-1">
-            Lorem Ipsum is simply dummy text of the printing and typesetting industry....
+            {article.description || "Read more about this story inside."}
           </p>
         </Link>
 
@@ -40,6 +40,7 @@ const NewsCard = ({ article, variant = "default" }: NewsCardProps) => {
               <span>{article.readTime} min read</span>
             </div>
             <div className="flex items-center gap-3">
+            {article.audioUrl && (
               <button
                 onClick={(e) => {
                   e.preventDefault();
@@ -51,6 +52,7 @@ const NewsCard = ({ article, variant = "default" }: NewsCardProps) => {
               >
                 <Headphones className="h-3.5 w-3.5" />
               </button>
+            )}
               <button
                 onClick={(e) => {
                   e.preventDefault();
@@ -133,18 +135,20 @@ const NewsCard = ({ article, variant = "default" }: NewsCardProps) => {
               {article.categoryName}
             </span>
             <div className="flex items-center gap-2">
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  playArticle(article);
-                }}
-                className="flex items-center gap-1.5 text-primary bg-primary/10 hover:bg-primary/20 px-2 py-1 rounded-full transition-colors"
-                aria-label="Listen to article"
-              >
-                <Headphones className="h-3.5 w-3.5" />
-                <span className="text-[10px] font-bold uppercase tracking-wide">Listen</span>
-              </button>
+              {article.audioUrl && (
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    playArticle(article);
+                  }}
+                  className="flex items-center gap-1.5 text-primary bg-primary/10 hover:bg-primary/20 px-2 py-1 rounded-full transition-colors"
+                  aria-label="Listen to article"
+                >
+                  <Headphones className="h-3.5 w-3.5" />
+                  <span className="text-[10px] font-bold uppercase tracking-wide">Listen</span>
+                </button>
+              )}
               <button
                 onClick={(e) => {
                   e.preventDefault();

@@ -107,7 +107,7 @@ const Index = () => {
                   </h2>
 
                   <p className="font-body text-sm text-primary-foreground/80 mt-3 line-clamp-3 leading-relaxed flex-1">
-                    Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC.
+                    {article.description || "Read more about this story inside."}
                   </p>
 
                   <div className="flex items-center justify-between mt-4 pt-3 border-t border-primary-foreground/30 border-dashed">

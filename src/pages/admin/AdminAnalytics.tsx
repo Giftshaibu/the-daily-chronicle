@@ -1,33 +1,23 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
 
-const viewsData = [
-  { date: "Feb 1", views: 1200 },
-  { date: "Feb 8", views: 1800 },
-  { date: "Feb 15", views: 2100 },
-  { date: "Feb 22", views: 1900 },
-  { date: "Mar 1", views: 3200 },
-  { date: "Mar 4", views: 4500 },
-];
-
-const topArticles = [
-  { title: "APM Declares Disaster", views: 12450 },
-  { title: "Football Qualifies", views: 9870 },
-  { title: "Economy Collapse", views: 8320 },
-  { title: "Tech Hub Opens", views: 5610 },
-  { title: "Infrastructure Plan", views: 3200 },
-];
-
-const engagementData = [
-  { date: "Feb 1", reads: 800, bookmarks: 45 },
-  { date: "Feb 8", reads: 1200, bookmarks: 62 },
-  { date: "Feb 15", reads: 1500, bookmarks: 78 },
-  { date: "Feb 22", reads: 1300, bookmarks: 55 },
-  { date: "Mar 1", reads: 2100, bookmarks: 95 },
-  { date: "Mar 4", reads: 3000, bookmarks: 120 },
-];
+import { useQuery } from "@tanstack/react-query";
+import { getAdminArticles } from "@/api/admin";
 
 export default function AdminAnalytics() {
+  const { data: adminArticles = [] } = useQuery({
+    queryKey: ['adminArticles'],
+    queryFn: getAdminArticles,
+  });
+
+  const topArticles = [...adminArticles]
+    .sort((a: any, b: any) => (b.views || 0) - (a.views || 0))
+    .slice(0, 5)
+    .map((a: any) => ({ title: a.title, views: a.views || 0 }));
+
+  const viewsData: any[] = [];
+  const engagementData: any[] = [];
+
   return (
     <div className="space-y-6">
       <div>

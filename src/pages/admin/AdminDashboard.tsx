@@ -4,13 +4,6 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getAdminArticles, getAdminActivities } from "@/api/admin";
 
-const stats = [
-  { label: "Total Articles", value: "47", icon: FileText, change: "+3 this week" },
-  { label: "Drafts", value: "12", icon: FilePen, change: "2 pending review" },
-  { label: "Published", value: "32", icon: Globe, change: "+5 this month" },
-  { label: "Total Views", value: "45.2K", icon: Eye, change: "+12% vs last month" },
-];
-
 export default function AdminDashboard() {
   const { data: adminArticles = [], isLoading: isLoadingArticles } = useQuery({
     queryKey: ['adminArticles'],
@@ -23,6 +16,18 @@ export default function AdminDashboard() {
   });
 
   const recentArticles = adminArticles.slice(0, 5);
+
+  const totalArticles = adminArticles.length;
+  const draftArticles = adminArticles.filter((a: any) => a.status === 'draft').length;
+  const publishedArticles = adminArticles.filter((a: any) => a.status === 'published').length;
+  const reviewArticles = adminArticles.filter((a: any) => a.status === 'review').length;
+
+  const stats = [
+    { label: "Total Articles", value: totalArticles.toString(), icon: FileText, change: "All time" },
+    { label: "Drafts", value: draftArticles.toString(), icon: FilePen, change: `${reviewArticles} pending review` },
+    { label: "Published", value: publishedArticles.toString(), icon: Globe, change: "Live on site" },
+    { label: "Total Views", value: "---", icon: Eye, change: "Data unavailable" },
+  ];
 
   return (
     <div className="space-y-6">
@@ -42,7 +47,7 @@ export default function AdminDashboard() {
               </div>
               <p className="font-headline text-2xl font-bold">{stat.value}</p>
               <p className="font-body text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                <TrendingUp className="h-3 w-3 text-green-600" />
+                <TrendingUp className="h-3 w-3 text-muted-foreground" />
                 {stat.change}
               </p>
             </CardContent>

@@ -66,22 +66,50 @@ export default function AdminArticleEditor() {
     onError: () => toast({ title: "Failed to save article", variant: "destructive" }),
   });
 
+  const wordCount = content.replace(/<[^>]*>?/gm, '').trim().split(/\s+/).filter(word => word.length > 0).length;
+  const MIN_WORDS = 300;
+
   const handleSave = (asDraft: boolean) => {
-    // Validate: a featured image is required to publish
-    if (!asDraft && !imageFile && !previewImageUrl) {
-      toast({
-        title: "Featured image required",
-        description: "A featured image is required to publish this article. Please upload an image or save as a draft.",
-        variant: "destructive",
-      });
+    if (!title.trim()) {
+      toast({ title: "Validation Error", description: "Please enter an article title.", variant: "destructive" });
       return;
+    }
+    if (!asDraft) {
+      if (!description.trim()) {
+        toast({ title: "Validation Error", description: "Please enter a description.", variant: "destructive" });
+        return;
+      }
+      if (!content.trim()) {
+        toast({ title: "Validation Error", description: "Please enter the article body.", variant: "destructive" });
+        return;
+      }
+      if (!categoryId) {
+        toast({ title: "Validation Error", description: "Please select a category.", variant: "destructive" });
+        return;
+      }
+      if (!imageFile && !previewImageUrl) {
+        toast({
+          title: "Featured image required",
+          description: "A featured image is required to publish this article. Please upload an image or save as a draft.",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (wordCount < MIN_WORDS) {
+        toast({
+          title: "Insufficient content",
+          description: `A minimum of ${MIN_WORDS} words is required to publish an article to maintain structural integrity. Currently at ${wordCount} words.`,
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     const formData = new FormData();
     formData.append("title", title);
-    formData.append("description", description);
-    formData.append("content", content);
-    formData.append("category_id", categoryId);
+    if (description) formData.append("description", description);
+    if (content) formData.append("content", content);
+    if (categoryId) formData.append("category_id", categoryId);
     formData.append("status", asDraft ? "draft" : "published");
     if (imageFile) formData.append("image", imageFile);
     if (audioFile) formData.append("audio", audioFile);
@@ -137,7 +165,12 @@ export default function AdminArticleEditor() {
                 />
               </div>
               <div>
-                <Label className="font-body text-sm">Article Body</Label>
+                <div className="flex justify-between items-center">
+                  <Label className="font-body text-sm">Article Body</Label>
+                  <span className={`text-xs font-body ${wordCount < MIN_WORDS ? 'text-destructive font-semibold' : 'text-muted-foreground'}`}>
+                    {wordCount} / {MIN_WORDS} words {wordCount < MIN_WORDS && "(minimum required)"}
+                  </span>
+                </div>
                 <Textarea
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
@@ -145,6 +178,11 @@ export default function AdminArticleEditor() {
                   className="font-body mt-1 min-h-[300px]"
                   rows={15}
                 />
+                {wordCount < MIN_WORDS && (
+                  <p className="font-body text-xs text-destructive mt-1.5">
+                    For optimal layout structure on the news page, please ensure the article body is at least {MIN_WORDS} words.
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>

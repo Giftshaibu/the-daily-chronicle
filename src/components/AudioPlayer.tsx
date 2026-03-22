@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Play,
   Pause,
@@ -17,26 +17,52 @@ const GlobalAudioPlayer = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
+  const [totalTime, setTotalTime] = useState(0);
   const [volume, setVolume] = useState(80);
   const [muted, setMuted] = useState(false);
+
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // States for scrolling logic
   const [isScrolled, setIsScrolled] = useState(false);
   const [userToggledOpen, setUserToggledOpen] = useState(false); // allows expanding when scrolled down
 
-  const totalTime = 300; // 5 min mock
-
-  // Reset on article change
+  // Reset and load new article audio
   useEffect(() => {
-    setIsPlaying(false);
-    setProgress(0);
-    setCurrentTime(0);
-    setUserToggledOpen(true); // default to open when newly selected
+    if (currentArticle?.audioUrl) {
+      if (audioRef.current) {
+        audioRef.current.src = currentArticle.audioUrl;
+        audioRef.current.load();
+      }
+      setIsPlaying(false);
+      setProgress(0);
+      setCurrentTime(0);
+      setUserToggledOpen(true); // default to open when newly selected
+    }
   }, [currentArticle]);
+
+  // Handle actual audio play/pause
+  useEffect(() => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.play().catch((err) => console.error("Audio playback failed:", err));
+      } else {
+        audioRef.current.pause();
+      }
+    }
+  }, [isPlaying]);
+
+  // Handle volume changes
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = volume / 100;
+      audioRef.current.muted = muted;
+    }
+  }, [volume, muted]);
 
   // Auto-play when opened
   useEffect(() => {
-    if (isOpen && currentArticle) setIsPlaying(true);
+    if (isOpen && currentArticle?.audioUrl) setIsPlaying(true);
   }, [isOpen, currentArticle]);
 
   // Handle scroll logic
@@ -48,42 +74,55 @@ const GlobalAudioPlayer = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Ticker
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isPlaying) {
-      interval = setInterval(() => {
-        setCurrentTime((prev) => {
-          if (prev >= totalTime) {
-            setIsPlaying(false);
-            return 0;
-          }
-          const next = prev + 1;
-          setProgress((next / totalTime) * 100);
-          return next;
-        });
-      }, 1000);
+  // Audio Event Handlers
+  const handleTimeUpdate = () => {
+    if (audioRef.current) {
+      const current = audioRef.current.currentTime;
+      const duration = audioRef.current.duration || 1;
+      setCurrentTime(current);
+      setProgress((current / duration) * 100);
     }
-    return () => clearInterval(interval);
-  }, [isPlaying]);
+  };
+
+  const handleLoadedData = () => {
+    if (audioRef.current) {
+      setTotalTime(audioRef.current.duration);
+    }
+  };
+
+  const handleEnded = () => {
+    setIsPlaying(false);
+    setProgress(0);
+    setCurrentTime(0);
+  };
 
   const formatTime = (s: number) => {
+    if (isNaN(s)) return "0:00";
     const m = Math.floor(s / 60);
     const sec = Math.floor(s % 60);
     return `${m}:${sec.toString().padStart(2, "0")}`;
   };
 
   const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const pct = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
-    setProgress(pct);
-    setCurrentTime((pct / 100) * totalTime);
+    if (audioRef.current) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const pct = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+      const newTime = (pct / 100) * (audioRef.current.duration || totalTime);
+      audioRef.current.currentTime = newTime;
+      setProgress(pct);
+      setCurrentTime(newTime);
+    }
   };
 
   const skip = (delta: number) => {
-    const next = Math.max(0, Math.min(totalTime, currentTime + delta));
-    setCurrentTime(next);
-    setProgress((next / totalTime) * 100);
+    if (audioRef.current) {
+      const duration = audioRef.current.duration || totalTime;
+      let next = audioRef.current.currentTime + delta;
+      next = Math.max(0, Math.min(duration, next));
+      audioRef.current.currentTime = next;
+      setCurrentTime(next);
+      setProgress((next / duration) * 100);
+    }
   };
 
   if (!isOpen || !currentArticle) return null;
@@ -95,32 +134,47 @@ const GlobalAudioPlayer = () => {
   // ── MINIMIZED CIRCULAR BUTTON (FLOATING BOTTOM RIGHT) ──
   if (isMinimized) {
     return (
-      <div className="fixed bottom-6 right-6 z-50 flex items-center space-x-2 animate-in fade-in slide-in-from-bottom flex-col gap-2">
-        <button
-          onClick={closePlayer}
-          className="bg-foreground text-background rounded-full p-2 shadow-xl hover:scale-105 transition-transform"
-          aria-label="Close listener"
-        >
-          <X className="h-4 w-4" />
-        </button>
-        <button
-          onClick={() => setUserToggledOpen(true)}
-          className="bg-primary text-primary-foreground rounded-full p-4 shadow-2xl hover:bg-primary/90 transition-all hover:scale-105"
-          aria-label="Maximize player"
-        >
-          {isPlaying ? (
-            <Headphones className="h-6 w-6 animate-pulse" />
-          ) : (
-            <Play className="h-6 w-6 ml-0.5 fill-current" />
-          )}
-        </button>
-      </div>
+      <>
+        <audio
+          ref={audioRef}
+          onTimeUpdate={handleTimeUpdate}
+          onLoadedData={handleLoadedData}
+          onEnded={handleEnded}
+        />
+        <div className="fixed bottom-6 right-6 z-50 flex items-center space-x-2 animate-in fade-in slide-in-from-bottom flex-col gap-2">
+          <button
+            onClick={closePlayer}
+            className="bg-foreground text-background rounded-full p-2 shadow-xl hover:scale-105 transition-transform"
+            aria-label="Close listener"
+          >
+            <X className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => setUserToggledOpen(true)}
+            className="bg-primary text-primary-foreground rounded-full p-4 shadow-2xl hover:bg-primary/90 transition-all hover:scale-105"
+            aria-label="Maximize player"
+          >
+            {isPlaying ? (
+              <Headphones className="h-6 w-6 animate-pulse" />
+            ) : (
+              <Play className="h-6 w-6 ml-0.5 fill-current" />
+            )}
+          </button>
+        </div>
+      </>
     );
   }
 
-  // ── FULL PLAYER (FIXED TO BOTTOM) ──
+  // ── FULL PLAYER (FIXED TO BOTTOM MOBILE, FLOATING RECTANGLE DESKTOP) ──
   return (
     <>
+      <audio
+        ref={audioRef}
+        onTimeUpdate={handleTimeUpdate}
+        onLoadedData={handleLoadedData}
+        onEnded={handleEnded}
+      />
+      
       {/* Backdrop for mobile tap-away (unless user opens it purposefully) */}
       <div
         className="fixed inset-0 z-40 bg-black/30 md:hidden"
@@ -132,11 +186,12 @@ const GlobalAudioPlayer = () => {
 
       {/* Player panel — slides up from bottom */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-50 bg-foreground text-background shadow-2xl
-                   rounded-t-2xl md:rounded-none md:rounded-t-xl
+        className="fixed bottom-0 left-0 right-0 z-50 bg-foreground text-background shadow-[0_0_40px_rgba(0,0,0,0.15)]
+                   rounded-t-2xl 
+                   md:left-auto md:right-8 md:bottom-8 md:w-[400px] md:rounded-2xl md:border md:border-background/10
                    animate-in slide-in-from-bottom duration-300"
       >
-        <div className="px-4 md:px-8 pb-6 pt-4 max-w-3xl mx-auto">
+        <div className="px-5 md:px-6 pb-6 pt-5">
           {/* ── Header row */}
           <div className="flex items-start justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -162,16 +217,16 @@ const GlobalAudioPlayer = () => {
           </div>
 
           {/* ── Title & author */}
-          <h3 className="font-headline font-bold text-base md:text-lg leading-tight line-clamp-2 mb-0.5 pr-8">
+          <h3 className="font-headline font-bold text-base md:text-lg leading-tight line-clamp-2 mb-1 pr-4">
             {currentArticle.title}
           </h3>
-          <p className="font-body text-xs text-background/50 mb-4">
+          <p className="font-body text-xs text-background/50 mb-5">
             {currentArticle.authorName} · {currentArticle.categoryName}
           </p>
 
           {/* ── Progress bar */}
           <div
-            className="w-full bg-background/20 rounded-full h-1.5 cursor-pointer mb-1 group"
+            className="w-full bg-background/20 rounded-full h-1.5 cursor-pointer mb-1.5 group"
             onClick={handleSeek}
           >
             <div
@@ -181,7 +236,7 @@ const GlobalAudioPlayer = () => {
               <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-primary rounded-full shadow opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
           </div>
-          <div className="flex justify-between text-xs font-body text-background/40 mb-4">
+          <div className="flex justify-between text-xs font-body text-background/40 mb-5">
             <span>{formatTime(currentTime)}</span>
             <span>{formatTime(totalTime)}</span>
           </div>
@@ -193,6 +248,7 @@ const GlobalAudioPlayer = () => {
               <button
                 onClick={() => setMuted(!muted)}
                 className="hover:text-primary transition-colors"
+                aria-label={muted ? "Unmute" : "Mute"}
               >
                 {muted ? (
                   <VolumeX className="h-4 w-4 text-background/60" />
@@ -207,17 +263,19 @@ const GlobalAudioPlayer = () => {
                 value={muted ? 0 : volume}
                 onChange={(e) => {
                   setVolume(Number(e.target.value));
-                  setMuted(false);
+                  if (Number(e.target.value) > 0) setMuted(false);
                 }}
-                className="w-20 accent-primary cursor-pointer"
+                className="w-16 accent-primary cursor-pointer hover:accent-primary/80 transition-all"
+                title={`Volume: ${volume}%`}
               />
             </div>
 
             {/* Playback controls */}
-            <div className="flex items-center gap-5 flex-1 justify-center">
+            <div className="flex items-center gap-5 flex-1 justify-center md:justify-end">
               <button
                 onClick={() => skip(-15)}
                 className="hover:text-primary transition-colors flex flex-col items-center gap-0.5"
+                title="Skip back 15s"
               >
                 <SkipBack className="h-5 w-5" />
                 <span className="text-[9px] font-body text-background/40">15s</span>
@@ -225,7 +283,8 @@ const GlobalAudioPlayer = () => {
 
               <button
                 onClick={() => setIsPlaying(!isPlaying)}
-                className="bg-primary text-primary-foreground rounded-full p-3.5 hover:bg-primary/90 transition-colors shadow-lg"
+                className="bg-primary text-primary-foreground rounded-full p-3.5 hover:bg-primary/90 hover:scale-105 transition-all shadow-lg active:scale-95"
+                title={isPlaying ? "Pause" : "Play"}
               >
                 {isPlaying ? (
                   <Pause className="h-6 w-6 fill-current" />
@@ -237,14 +296,15 @@ const GlobalAudioPlayer = () => {
               <button
                 onClick={() => skip(15)}
                 className="hover:text-primary transition-colors flex flex-col items-center gap-0.5"
+                title="Skip forward 15s"
               >
                 <SkipForward className="h-5 w-5" />
                 <span className="text-[9px] font-body text-background/40">15s</span>
               </button>
             </div>
-
-            {/* Spacer */}
-            <div className="flex-1 hidden md:block" />
+            
+            {/* Spacer to keep middle icons centered on mobile */}
+            <div className="flex-1 md:hidden" />
           </div>
         </div>
       </div>
