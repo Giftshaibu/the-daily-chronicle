@@ -1,10 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { Article } from "@/data/mockData";
-import { articles } from "@/data/mockData";
 
 interface BookmarksContextType {
     bookmarkedIds: string[];
-    bookmarkedArticles: Article[];
     addBookmark: (articleId: string) => void;
     removeBookmark: (articleId: string) => void;
     toggleBookmark: (articleId: string) => void;
@@ -55,13 +52,10 @@ export const BookmarksProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     const isBookmarked = (articleId: string) => bookmarkedIds.includes(articleId);
 
-    const bookmarkedArticles = articles.filter(a => bookmarkedIds.includes(a.id));
-
     return (
         <BookmarksContext.Provider
             value={{
                 bookmarkedIds,
-                bookmarkedArticles,
                 addBookmark,
                 removeBookmark,
                 toggleBookmark,
