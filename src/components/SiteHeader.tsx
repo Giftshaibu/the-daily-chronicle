@@ -248,16 +248,29 @@ const SiteHeader = () => {
 
       {/* ── CATEGORY NAV BAR – desktop only (hidden on mobile, already in side menu) */}
       <nav className="hidden md:flex bg-nav text-nav-foreground overflow-x-auto justify-center">
-        <div className="container flex items-center justify-center gap-0">
+        <div className="container flex items-center justify-center gap-0 text-sm">
           {categories.map((item) => (
             <Link
               key={item.id}
               to={`/category/${item.slug}`}
-              className="px-4 py-2 text-xs font-body font-medium whitespace-nowrap hover:bg-primary transition-colors"
+              className="px-4 py-2 font-body font-medium whitespace-nowrap hover:bg-primary transition-colors"
             >
               {item.name}
             </Link>
           ))}
+          <div className="h-4 w-px bg-nav-foreground/30 mx-2" />
+          <Link
+            to="/bookmarks"
+            className="px-4 py-2 font-body font-medium whitespace-nowrap hover:bg-primary transition-colors"
+          >
+            Bookmarks
+          </Link>
+          <Link
+            to="/search"
+            className="px-4 py-2 font-body font-medium whitespace-nowrap hover:bg-primary transition-colors"
+          >
+            Podcasts & Audio
+          </Link>
         </div>
       </nav>
     </>

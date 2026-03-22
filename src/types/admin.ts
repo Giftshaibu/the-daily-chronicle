@@ -11,6 +11,7 @@ export interface AdminArticle {
   audioUrl?: string;
   categoryId: string;
   categoryName: string;
+  categoryIds?: string[];
   authorId: string;
   authorName: string;
   status: ArticleStatus;

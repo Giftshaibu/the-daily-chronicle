@@ -52,6 +52,8 @@ export interface Post {
   categoryId: string;
   categoryName: string;
   categorySlug: string;
+  categoryIds?: string[];
+  categories?: Category[];
   publishedAt: string;
   readTime: number;
   audioUrl: string | null;

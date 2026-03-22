@@ -22,7 +22,7 @@ export default function AdminArticleEditor() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [content, setContent] = useState("");
-  const [categoryId, setCategoryId] = useState("");
+  const [categoryIds, setCategoryIds] = useState<string[]>([]);
   const [isPublished, setIsPublished] = useState(false);
   
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -46,7 +46,13 @@ export default function AdminArticleEditor() {
       setTitle(existingArticle.title || "");
       setDescription(existingArticle.description || "");
       setContent(existingArticle.content || "");
-      setCategoryId(existingArticle.categoryId || "");
+      if (existingArticle.categoryIds && existingArticle.categoryIds.length > 0) {
+        setCategoryIds(existingArticle.categoryIds);
+      } else if (existingArticle.categoryId) {
+        setCategoryIds([existingArticle.categoryId]);
+      } else {
+        setCategoryIds([]);
+      }
       setIsPublished(existingArticle.status === "published");
       setPreviewImageUrl(existingArticle.image || "");
       setExistingAudioUrl(existingArticle.audioUrl || "");
@@ -86,8 +92,8 @@ export default function AdminArticleEditor() {
         toast({ title: "Validation Error", description: "Please enter the article body.", variant: "destructive" });
         return;
       }
-      if (!categoryId) {
-        toast({ title: "Validation Error", description: "Please select a category.", variant: "destructive" });
+      if (categoryIds.length === 0) {
+        toast({ title: "Validation Error", description: "Please select at least one category.", variant: "destructive" });
         return;
       }
       if (!imageFile && !previewImageUrl) {
@@ -112,7 +118,9 @@ export default function AdminArticleEditor() {
     formData.append("title", title);
     formData.append("description", description || "");
     formData.append("content", content || "");
-    formData.append("category_id", categoryId || "");
+    categoryIds.forEach(id => {
+      formData.append("category_ids[]", id);
+    });
     formData.append("status", asDraft ? "draft" : "published");
     if (imageFile) formData.append("image", imageFile);
     if (audioFile) formData.append("audio", audioFile);
@@ -198,17 +206,32 @@ export default function AdminArticleEditor() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label className="font-body text-sm">Category</Label>
-                <Select value={categoryId} onValueChange={setCategoryId}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label className="font-body text-sm block mb-2">Categories</Label>
+                <div className="flex flex-wrap gap-2">
+                  {categories.map((cat) => {
+                    const isSelected = categoryIds.includes(cat.id);
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => {
+                          if (isSelected) {
+                            setCategoryIds(categoryIds.filter(id => id !== cat.id));
+                          } else {
+                            setCategoryIds([...categoryIds, cat.id]);
+                          }
+                        }}
+                        className={`px-3 py-1.5 text-xs font-semibold rounded-full border transition-colors ${
+                          isSelected 
+                            ? 'bg-primary text-primary-foreground border-primary' 
+                            : 'bg-transparent text-muted-foreground border-border hover:border-primary hover:text-foreground'
+                        }`}
+                      >
+                        {cat.name}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
               <div className="flex items-center justify-between">
                 <Label className="font-body text-sm">Publish</Label>
