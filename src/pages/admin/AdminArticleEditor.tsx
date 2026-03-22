@@ -63,7 +63,10 @@ export default function AdminArticleEditor() {
       toast({ title: "Article saved successfully" });
       navigate("/admin/articles");
     },
-    onError: () => toast({ title: "Failed to save article", variant: "destructive" }),
+    onError: (error: any) => {
+      const msg = error.response?.data?.message || error.message || "An unknown error occurred.";
+      toast({ title: "Failed to save article", description: msg, variant: "destructive" });
+    },
   });
 
   const wordCount = content.replace(/<[^>]*>?/gm, '').trim().split(/\s+/).filter(word => word.length > 0).length;
@@ -107,9 +110,9 @@ export default function AdminArticleEditor() {
 
     const formData = new FormData();
     formData.append("title", title);
-    if (description) formData.append("description", description);
-    if (content) formData.append("content", content);
-    if (categoryId) formData.append("category_id", categoryId);
+    formData.append("description", description || "");
+    formData.append("content", content || "");
+    formData.append("category_id", categoryId || "");
     formData.append("status", asDraft ? "draft" : "published");
     if (imageFile) formData.append("image", imageFile);
     if (audioFile) formData.append("audio", audioFile);
