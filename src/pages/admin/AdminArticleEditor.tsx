@@ -9,7 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getAdminArticle, createAdminArticle, updateAdminArticle, getAdminCategories } from "@/api/admin";
+import { getAdminArticle, createAdminArticle, updateAdminArticle } from "@/api/admin";
+import { getCategories } from "@/api/categories";
 import { useToast } from "@/hooks/use-toast";
 
 export default function AdminArticleEditor() {
@@ -31,8 +32,8 @@ export default function AdminArticleEditor() {
   const [existingAudioUrl, setExistingAudioUrl] = useState("");
 
   const { data: categories = [] } = useQuery({
-    queryKey: ['adminCategories'],
-    queryFn: getAdminCategories,
+    queryKey: ['categories'],
+    queryFn: getCategories,
   });
 
   const { data: existingArticle, isLoading } = useQuery({
