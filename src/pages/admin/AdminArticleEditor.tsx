@@ -25,7 +25,7 @@ export default function AdminArticleEditor() {
   const [content, setContent] = useState("");
   const [categoryIds, setCategoryIds] = useState<string[]>([]);
   const [isPublished, setIsPublished] = useState(false);
-  
+
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [previewImageUrl, setPreviewImageUrl] = useState("");
@@ -37,7 +37,7 @@ export default function AdminArticleEditor() {
     queryFn: getCategories,
   });
 
-  const filteredCategories = categories.filter((cat: any) => 
+  const filteredCategories = categories.filter((cat: any) =>
     cat.name.toLowerCase().includes(categorySearch.toLowerCase())
   );
 
@@ -192,7 +192,7 @@ export default function AdminArticleEditor() {
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   placeholder="Write your article content here... (supports HTML)"
-                  className="font-body mt-1 min-h-[300px]"
+                  className="font-body mt-1 min-h-[500px]"
                   rows={15}
                 />
                 {wordCount < MIN_WORDS && (
@@ -236,11 +236,10 @@ export default function AdminArticleEditor() {
                               setCategoryIds([...categoryIds, cat.id]);
                             }
                           }}
-                          className={`px-3 py-1.5 text-xs font-semibold rounded-full border transition-colors ${
-                            isSelected 
-                              ? 'bg-primary text-primary-foreground border-primary' 
-                              : 'bg-transparent text-muted-foreground border-border hover:border-primary hover:text-foreground'
-                          }`}
+                          className={`px-3 py-1.5 text-xs font-semibold rounded-full border transition-colors ${isSelected
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : 'bg-transparent text-muted-foreground border-border hover:border-primary hover:text-foreground'
+                            }`}
                         >
                           {cat.name}
                         </button>
