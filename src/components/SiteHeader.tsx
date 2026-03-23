@@ -134,7 +134,7 @@ const SiteHeader = () => {
               </button>
             </SheetTrigger>
             <SheetContent side="left" className="bg-primary text-primary-foreground border-none w-72 p-0">
-              <div className="flex flex-col h-full p-6">
+              <div className="flex flex-col h-full p-6 overflow-y-auto">
                 {/* Logo */}
                 <div className="flex items-center justify-between mb-8">
                   <Link to="/" onClick={() => setMenuOpen(false)}>
