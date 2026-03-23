@@ -30,11 +30,16 @@ export default function AdminArticleEditor() {
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [previewImageUrl, setPreviewImageUrl] = useState("");
   const [existingAudioUrl, setExistingAudioUrl] = useState("");
+  const [categorySearch, setCategorySearch] = useState("");
 
   const { data: categories = [] } = useQuery({
     queryKey: ['categories'],
     queryFn: getCategories,
   });
+
+  const filteredCategories = categories.filter((cat: any) => 
+    cat.name.toLowerCase().includes(categorySearch.toLowerCase())
+  );
 
   const { data: existingArticle, isLoading } = useQuery({
     queryKey: ['adminArticle', id],
@@ -208,30 +213,40 @@ export default function AdminArticleEditor() {
             <CardContent className="space-y-4">
               <div>
                 <Label className="font-body text-sm block mb-2">Categories</Label>
-                <div className="flex flex-wrap gap-2">
-                  {categories.map((cat) => {
-                    const isSelected = categoryIds.includes(cat.id);
-                    return (
-                      <button
-                        key={cat.id}
-                        type="button"
-                        onClick={() => {
-                          if (isSelected) {
-                            setCategoryIds(categoryIds.filter(id => id !== cat.id));
-                          } else {
-                            setCategoryIds([...categoryIds, cat.id]);
-                          }
-                        }}
-                        className={`px-3 py-1.5 text-xs font-semibold rounded-full border transition-colors ${
-                          isSelected 
-                            ? 'bg-primary text-primary-foreground border-primary' 
-                            : 'bg-transparent text-muted-foreground border-border hover:border-primary hover:text-foreground'
-                        }`}
-                      >
-                        {cat.name}
-                      </button>
-                    );
-                  })}
+                <Input
+                  className="mb-3 h-8 text-xs font-body"
+                  placeholder="Search categories..."
+                  value={categorySearch}
+                  onChange={(e) => setCategorySearch(e.target.value)}
+                />
+                <div className="flex flex-wrap gap-2 max-h-[350px] overflow-y-auto pr-2" style={{ scrollbarWidth: 'thin' }}>
+                  {filteredCategories.length === 0 ? (
+                    <p className="text-xs text-muted-foreground font-body py-2">No categories found.</p>
+                  ) : (
+                    filteredCategories.map((cat) => {
+                      const isSelected = categoryIds.includes(cat.id);
+                      return (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          onClick={() => {
+                            if (isSelected) {
+                              setCategoryIds(categoryIds.filter(id => id !== cat.id));
+                            } else {
+                              setCategoryIds([...categoryIds, cat.id]);
+                            }
+                          }}
+                          className={`px-3 py-1.5 text-xs font-semibold rounded-full border transition-colors ${
+                            isSelected 
+                              ? 'bg-primary text-primary-foreground border-primary' 
+                              : 'bg-transparent text-muted-foreground border-border hover:border-primary hover:text-foreground'
+                          }`}
+                        >
+                          {cat.name}
+                        </button>
+                      );
+                    })
+                  )}
                 </div>
               </div>
               <div className="flex items-center justify-between">
