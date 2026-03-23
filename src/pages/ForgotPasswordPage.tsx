@@ -1,46 +1,33 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import logo1 from "@/assets/thePostOffice1.png";
 import { useMutation } from "@tanstack/react-query";
-import { login } from "@/api/auth";
-import { useAuth } from "@/context/AuthContext";
+import { forgotPassword } from "@/api/auth";
 
-const SignInPage = () => {
+const ForgotPasswordPage = () => {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
-  const navigate = useNavigate();
-  const { setAuth } = useAuth();
 
-  const loginMutation = useMutation({
-    mutationFn: () => login(email, password),
-    onSuccess: (data) => {
-      setAuth(data.user, data.access_token);
-      if (data.user.role === 'admin' || data.user.role === 'author') {
-        navigate('/admin');
-      } else {
-        navigate('/');
-      }
+  const forgotPasswordMutation = useMutation({
+    mutationFn: () => forgotPassword(email),
+    onSuccess: () => {
+      setSuccessMsg("If your email exists in our system, you will receive a password reset link shortly.");
+      setErrorMsg("");
     },
-    onError: (err: any) => {
-      const status = err?.response?.status;
-      if (status === 403) {
-        setErrorMsg("Your email is not verified. Please check your inbox and click the verification link before signing in.");
-      } else {
-        setErrorMsg(err?.response?.data?.message || "Invalid email or password. Please try again.");
-      }
+    onError: (error: any) => {
+      setErrorMsg(error.response?.data?.message || "Something went wrong. Please try again.");
+      setSuccessMsg("");
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMsg("");
-    loginMutation.mutate();
+    forgotPasswordMutation.mutate();
   };
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
-
       {/* ── LEFT / TOP: Logo section ─────────────────────────── */}
       <div className="bg-primary flex items-center justify-center px-10 py-12 md:w-1/2 md:min-h-screen">
         <Link to="/">
@@ -54,13 +41,18 @@ const SignInPage = () => {
 
       {/* ── RIGHT / BOTTOM: Form section ─────────────────────── */}
       <div className="bg-primary md:bg-white flex flex-col items-center justify-center flex-1 px-8 py-14 md:w-1/2 md:min-h-screen">
-
         {/* White card wrapper */}
         <div className="w-full max-w-xs bg-white md:shadow-lg rounded-sm px-8 py-10">
-          <h2 className="text-primary font-body text-xl text-center mb-8 leading-snug">
-            Sign In<br />with Email &amp; Password
+          <h2 className="text-primary font-body text-xl text-center mb-4 leading-snug">
+            Reset Password
           </h2>
+          <p className="text-center font-body text-sm text-gray-600 mb-8">
+            Enter your email to receive a password reset link.
+          </p>
 
+          {successMsg && (
+            <p className="text-sm text-green-600 font-body text-center mb-4">{successMsg}</p>
+          )}
           {errorMsg && (
             <p className="text-sm text-red-600 font-body text-center mb-4">{errorMsg}</p>
           )}
@@ -77,38 +69,21 @@ const SignInPage = () => {
               />
             </div>
 
-            <div className="bg-primary px-4 py-3 rounded-sm">
-              <input
-                type="password"
-                placeholder="Enter Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full bg-transparent text-primary-foreground font-body text-sm outline-none border-b border-primary-foreground placeholder:text-primary-foreground/70"
-              />
-            </div>
-
             <button
               type="submit"
-              disabled={loginMutation.isPending}
+              disabled={forgotPasswordMutation.isPending}
               className="text-primary font-body text-base underline underline-offset-2 mt-2 hover:opacity-80 transition-opacity text-center disabled:opacity-50"
             >
-              {loginMutation.isPending ? "Signing in..." : "Sign In"}
+              {forgotPasswordMutation.isPending ? "Sending link..." : "Send link"}
             </button>
           </form>
 
           <div className="text-center mt-6 flex flex-col gap-1">
             <Link
-              to="/signup"
+              to="/signin"
               className="text-primary/70 font-body text-xs underline underline-offset-2 hover:opacity-80 transition-opacity"
             >
-              Don't have an account, go to sign up
-            </Link>
-            <Link
-              to="/forgot-password"
-              className="text-primary/70 font-body text-xs underline underline-offset-2 hover:opacity-80 transition-opacity mt-2"
-            >
-              Forgot your password?
+              Back to sign in
             </Link>
           </div>
         </div>
@@ -117,4 +92,4 @@ const SignInPage = () => {
   );
 };
 
-export default SignInPage;
+export default ForgotPasswordPage;

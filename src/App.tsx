@@ -18,6 +18,10 @@ import { BookmarksProvider } from "./contexts/BookmarksContext";
 import GlobalAudioPlayer from "./components/AudioPlayer";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
+import VerifyEmailPage from "./pages/VerifyEmailPage";
+import VerifyEmailNoticePage from "./pages/VerifyEmailNoticePage";
 
 // Admin pages
 import { AdminLayout } from "./components/admin/AdminLayout";
@@ -46,10 +50,14 @@ const App = () => (
                 <Route path="/article/:slug" element={<ArticlePage />} />
                 <Route path="/category/:slug" element={<CategoryPage />} />
                 <Route path="/search" element={<SearchPage />} />
-                <Route path="/bookmarks" element={<BookmarksPage />} />
+                <Route path="/bookmarks" element={<ProtectedRoute><BookmarksPage /></ProtectedRoute>} />
                 <Route path="/listen/:slug" element={<ListenPage />} />
                 <Route path="/signin" element={<SignInPage />} />
                 <Route path="/signup" element={<SignUpPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                <Route path="/password-reset/:token" element={<ResetPasswordPage />} />
+                <Route path="/verify-email/:id/:hash" element={<VerifyEmailPage />} />
+                <Route path="/verify-email-notice" element={<VerifyEmailNoticePage />} />
                 <Route path="/about" element={<AboutPage />} />
 
                 {/* Admin Dashboard – restricted to admin & author roles */}

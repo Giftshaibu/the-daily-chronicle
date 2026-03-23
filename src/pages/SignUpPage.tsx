@@ -1,28 +1,41 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import logo1 from "@/assets/thePostOffice1Red.png";
 import { useMutation } from "@tanstack/react-query";
-import { register } from "@/api/auth";
-import { useAuth } from "@/context/AuthContext";
+import { register, resendVerificationEmailWithToken } from "@/api/auth";
 
 const SignUpPage = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
-  const navigate = useNavigate();
-  const { setAuth } = useAuth();
+  const [registered, setRegistered] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState("");
+  const [resendMsg, setResendMsg] = useState("");
+  // Store token locally (not in global auth) — used only for the resend button
+  const [tempToken, setTempToken] = useState("");
 
   const registerMutation = useMutation({
     mutationFn: () => register(name, email, password),
     onSuccess: (data) => {
-      setAuth(data.user, data.access_token);
-      navigate('/');
+      // Do NOT log the user into the app — store token only for resend
+      setTempToken(data.access_token);
+      setRegisteredEmail(email);
+      setRegistered(true);
     },
     onError: (err: any) => {
-      const message = err?.response?.data?.message || "Registration failed. Please try again.";
+      const message =
+        err?.response?.data?.message ||
+        err?.response?.data?.errors?.email?.[0] ||
+        "Registration failed. Please try again.";
       setErrorMsg(message);
     },
+  });
+
+  const resendMutation = useMutation({
+    mutationFn: () => resendVerificationEmailWithToken(tempToken),
+    onSuccess: () => setResendMsg("Verification email sent! Please check your inbox."),
+    onError: () => setResendMsg("Could not resend. Please try again."),
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -31,21 +44,87 @@ const SignUpPage = () => {
     registerMutation.mutate();
   };
 
+  // ── Check-your-email screen ──────────────────────────────────────────────
+  if (registered) {
+    return (
+      <div className="min-h-screen flex flex-col md:flex-row">
+        <div className="bg-white flex items-center justify-center px-10 py-12 md:w-1/2 md:min-h-screen">
+          <Link to="/">
+            <img src={logo1} alt="The Post Office" className="w-48 md:w-80 h-auto" />
+          </Link>
+        </div>
+
+        <div className="bg-primary flex flex-col items-center justify-center flex-1 px-8 py-14 md:w-1/2 md:min-h-screen text-center">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-16 h-16 text-primary-foreground mb-6 opacity-80"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={1.5}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25H4.5a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0l-9.75 6.75L2.25 6.75"
+            />
+          </svg>
+
+          <h2 className="text-primary-foreground font-body text-xl mb-3 leading-snug">
+            Check your email
+          </h2>
+          <p className="text-primary-foreground/80 font-body text-sm mb-1">
+            We've sent a verification link to:
+          </p>
+          <p className="text-primary-foreground font-body text-sm font-semibold mb-6">
+            {registeredEmail}
+          </p>
+          <p className="text-primary-foreground/70 font-body text-xs mb-8 max-w-xs">
+            Click the link in the email to verify your account. You won't be
+            able to sign in until your email is verified.
+          </p>
+
+          {resendMsg && (
+            <p className="text-primary-foreground/90 font-body text-xs mb-4">
+              {resendMsg}
+            </p>
+          )}
+
+          <button
+            onClick={() => {
+              setResendMsg("");
+              resendMutation.mutate();
+            }}
+            disabled={resendMutation.isPending}
+            className="text-primary-foreground font-body text-xs underline underline-offset-2 hover:opacity-80 transition-opacity disabled:opacity-50"
+          >
+            {resendMutation.isPending
+              ? "Sending..."
+              : "Didn't get it? Resend verification email"}
+          </button>
+
+          <p className="text-primary-foreground/80 font-body text-xs text-center mt-8 underline underline-offset-2">
+            <Link to="/signin" className="hover:opacity-80 transition-opacity">
+              Back to sign in
+            </Link>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Registration form ────────────────────────────────────────────────────
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
 
-      {/* ── LEFT / TOP: Logo section ─────────────────────────── */}
+      {/* ── LEFT / TOP: Logo section */}
       <div className="bg-white flex items-center justify-center px-10 py-12 md:w-1/2 md:min-h-screen">
         <Link to="/">
-          <img
-            src={logo1}
-            alt="The Post Office"
-            className="w-48 md:w-80 h-auto"
-          />
+          <img src={logo1} alt="The Post Office" className="w-48 md:w-80 h-auto" />
         </Link>
       </div>
 
-      {/* ── RIGHT / BOTTOM: Form section ─────────────────────── */}
+      {/* ── RIGHT / BOTTOM: Form section */}
       <div className="bg-primary flex flex-col items-center justify-center flex-1 px-8 py-14 md:w-1/2 md:min-h-screen">
         <h2 className="text-primary-foreground font-body text-xl text-center mb-8 leading-snug">
           Sign up<br />with Email &amp; Password
@@ -56,7 +135,6 @@ const SignUpPage = () => {
         )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full max-w-xs">
-          {/* Name input */}
           <div className="bg-white px-4 py-3 rounded-sm">
             <input
               type="text"
@@ -68,7 +146,6 @@ const SignUpPage = () => {
             />
           </div>
 
-          {/* Email input */}
           <div className="bg-white px-4 py-3 rounded-sm">
             <input
               type="email"
@@ -80,7 +157,6 @@ const SignUpPage = () => {
             />
           </div>
 
-          {/* Password input */}
           <div className="bg-white px-4 py-3 rounded-sm">
             <input
               type="password"
