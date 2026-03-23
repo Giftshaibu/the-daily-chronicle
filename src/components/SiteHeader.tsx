@@ -26,6 +26,7 @@ const RoleBadge = ({ role }: { role: string }) => {
 
 const SiteHeader = () => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showAllCategories, setShowAllCategories] = useState(false);
   const { user, isAuthenticated, clearAuth } = useAuth();
   const navigate = useNavigate();
 
@@ -151,7 +152,7 @@ const SiteHeader = () => {
                     About Us
                   </Link>
                   <div className="border-t border-primary-foreground/20 mt-2 pt-2" />
-                  {categories.map((cat) => (
+                  {(showAllCategories ? categories : categories.slice(0, 7)).map((cat) => (
                     <Link
                       key={cat.id}
                       to={`/category/${cat.slug}`}
@@ -161,6 +162,29 @@ const SiteHeader = () => {
                       {cat.name}
                     </Link>
                   ))}
+                  {categories.length > 7 && !showAllCategories && (
+                    <button
+                      onClick={() => setShowAllCategories(true)}
+                      className="py-2 px-3 rounded hover:bg-primary-foreground/10 transition-colors font-body text-sm text-left text-primary-foreground/80 font-semibold"
+                    >
+                      View More Categories...
+                    </button>
+                  )}
+                  {showAllCategories && (
+                    <button
+                      onClick={() => setShowAllCategories(false)}
+                      className="py-2 px-3 rounded hover:bg-primary-foreground/10 transition-colors font-body text-sm text-left text-primary-foreground/80 font-semibold"
+                    >
+                      Show Less
+                    </button>
+                  )}
+                  <Link
+                    to="/categories"
+                    onClick={() => setMenuOpen(false)}
+                    className="py-2 px-3 rounded hover:bg-primary-foreground/10 transition-colors font-body text-sm font-semibold text-primary-foreground/90"
+                  >
+                    Browse All Categories
+                  </Link>
                   <div className="border-t border-primary-foreground/20 mt-2 pt-2">
                     <Link
                       to="/bookmarks"
@@ -249,7 +273,7 @@ const SiteHeader = () => {
       {/* ── CATEGORY NAV BAR – desktop only (hidden on mobile, already in side menu) */}
       <nav className="hidden md:flex bg-nav text-nav-foreground overflow-x-auto justify-center">
         <div className="container flex items-center justify-center gap-0 text-sm">
-          {categories.map((item) => (
+          {categories.slice(0, 7).map((item) => (
             <Link
               key={item.id}
               to={`/category/${item.slug}`}
@@ -258,6 +282,14 @@ const SiteHeader = () => {
               {item.name}
             </Link>
           ))}
+          {categories.length > 7 && (
+            <Link
+              to="/categories"
+              className="px-4 py-2 font-body font-bold whitespace-nowrap text-nav-foreground/80 hover:text-nav-foreground hover:bg-primary transition-colors border-l border-nav-foreground/20 ml-2 pl-4"
+            >
+              Browse by Category
+            </Link>
+           )}
           <div className="h-4 w-px bg-nav-foreground/30 mx-2" />
           <Link
             to="/bookmarks"

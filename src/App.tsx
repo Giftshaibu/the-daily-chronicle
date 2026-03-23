@@ -9,6 +9,7 @@ import CategoryPage from "./pages/CategoryPage";
 import SearchPage from "./pages/SearchPage";
 import BookmarksPage from "./pages/BookmarksPage";
 import ListenPage from "./pages/ListenPage";
+import CategoriesPage from "./pages/CategoriesPage";
 import SignInPage from "./pages/SignInPage";
 import SignUpPage from "./pages/SignUpPage";
 import AboutPage from "./pages/AboutPage";
@@ -49,6 +50,7 @@ const App = () => (
                 <Route path="/" element={<Index />} />
                 <Route path="/article/:slug" element={<ArticlePage />} />
                 <Route path="/category/:slug" element={<CategoryPage />} />
+                <Route path="/categories" element={<CategoriesPage />} />
                 <Route path="/search" element={<SearchPage />} />
                 <Route path="/bookmarks" element={<ProtectedRoute><BookmarksPage /></ProtectedRoute>} />
                 <Route path="/listen/:slug" element={<ListenPage />} />

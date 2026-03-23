@@ -31,6 +31,16 @@ const Index = () => {
   const featuredArticle = safeArticles[0];
   const latestArticles = safeArticles.slice(1, 4);
 
+  const breakingNewsArticles = safeArticles.filter(a => {
+    const isBreakingName = a.categoryName?.toLowerCase().includes('breaking news');
+    const isBreakingInArray = a.categories?.some(c => c.name.toLowerCase().includes('breaking news') || c.slug.toLowerCase().includes('breaking'));
+    const isBreakingSlug = a.categorySlug?.toLowerCase().includes('breaking');
+    return isBreakingName || isBreakingInArray || isBreakingSlug;
+  });
+
+  const displayBreakingCarousel = breakingNewsArticles.length > 0 ? breakingNewsArticles : safeArticles;
+  const firstBreakingNews = breakingNewsArticles.length > 0 ? breakingNewsArticles[0] : featuredArticle;
+
   if (!featuredArticle) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
@@ -55,7 +65,7 @@ const Index = () => {
               Breaking
             </span>
             <p className="font-body text-xs truncate">
-              {featuredArticle.title} — {featuredArticle.description}
+              {firstBreakingNews?.title} — {firstBreakingNews?.description}
             </p>
           </div>
         </div>
@@ -87,7 +97,7 @@ const Index = () => {
                 }
               `}</style>
 
-              {safeArticles.slice(0, 4).map((article) => (
+              {displayBreakingCarousel.slice(0, 4).map((article) => (
                 <div
                   key={article.id}
                   className="bg-primary text-primary-foreground p-4 md:p-6 rounded-sm shrink-0 w-[85vw] md:w-[400px] snap-center flex flex-col"
