@@ -7,6 +7,8 @@ import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import NewsCard from "@/components/NewsCard";
 import { useQuery } from "@tanstack/react-query";
 import { getPostBySlugOrId, getPosts } from "@/api/posts";
+import { shareArticle } from "@/lib/share";
+import { toast } from "@/hooks/use-toast";
 
 const ArticlePage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -51,6 +53,17 @@ const ArticlePage = () => {
     );
   }
 
+  const handleShare = async () => {
+    const result = await shareArticle({
+      title: article.title,
+      description: article.description,
+      slug: article.slug,
+    });
+    if (result === "copied") {
+      toast({ title: "Link copied to clipboard" });
+    }
+  };
+
   const relatedArticles = allPosts ? allPosts.filter((a) => a.id !== article.id).slice(0, 3) : [];
   const otherNews = allPosts ? allPosts.filter((a) => a.id !== article.id).slice(3, 7) : [];
 
@@ -83,7 +96,11 @@ const ArticlePage = () => {
             >
               <Bookmark className="h-4 w-4" fill={isBookmarked(article.id) ? "currentColor" : "none"} />
             </button>
-            <button className="flex items-center justify-center bg-primary/10 hover:bg-primary/20 p-2 rounded-full transition-colors text-primary" aria-label="Share">
+            <button
+              onClick={handleShare}
+              className="flex items-center justify-center bg-primary/10 hover:bg-primary/20 p-2 rounded-full transition-colors text-primary"
+              aria-label="Share"
+            >
               <Share2 className="h-4 w-4" />
             </button>
           </div>

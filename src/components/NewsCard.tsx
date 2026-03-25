@@ -3,6 +3,8 @@ import { Headphones, Bookmark, Share2, Clock } from "lucide-react";
 import { Post } from "@/types/api";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { useBookmarks } from "@/contexts/BookmarksContext";
+import { shareArticle } from "@/lib/share";
+import { toast } from "@/hooks/use-toast";
 
 interface NewsCardProps {
   article: Post;
@@ -14,6 +16,18 @@ const NewsCard = ({ article, variant = "default" }: NewsCardProps) => {
   const { isBookmarked, toggleBookmark } = useBookmarks();
 
   const bookmarked = isBookmarked(article.id);
+  const handleShare = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const result = await shareArticle({
+      title: article.title,
+      description: article.description,
+      slug: article.slug,
+    });
+    if (result === "copied") {
+      toast({ title: "Link copied to clipboard" });
+    }
+  };
 
   if (variant === "editorial") {
     // New variant matching the dense mobile "newspaper" look
@@ -64,7 +78,11 @@ const NewsCard = ({ article, variant = "default" }: NewsCardProps) => {
               >
                 <Bookmark className="h-3.5 w-3.5" fill={bookmarked ? "currentColor" : "none"} />
               </button>
-              <button className="hover:text-primary transition-colors" aria-label="Share">
+              <button
+                onClick={handleShare}
+                className="hover:text-primary transition-colors"
+                aria-label="Share"
+              >
                 <Share2 className="h-3.5 w-3.5" />
               </button>
             </div>
