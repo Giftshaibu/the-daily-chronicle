@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, type ReactNode } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Save, Globe, Eye } from "lucide-react";
+import { ArrowLeft, Save, Globe, Eye, Bold, Italic, Underline, Heading2, Quote, List, Link as LinkIcon, SeparatorHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -101,6 +101,47 @@ export default function AdminArticleEditor() {
     });
   };
 
+  const wrapSelection = (openTag: string, closeTag: string, placeholder = "Text") => {
+    const textarea = contentRef.current;
+    if (!textarea) {
+      insertAtCursor(`${openTag}${placeholder}${closeTag}`);
+      return;
+    }
+    const start = textarea.selectionStart ?? content.length;
+    const end = textarea.selectionEnd ?? content.length;
+    const selected = content.slice(start, end) || placeholder;
+    const snippet = `${openTag}${selected}${closeTag}`;
+    setContent((prev) => prev.slice(0, start) + snippet + prev.slice(end));
+    requestAnimationFrame(() => {
+      textarea.focus();
+      const position = start + snippet.length;
+      textarea.setSelectionRange(position, position);
+    });
+  };
+
+  const wrapAsList = () => {
+    const textarea = contentRef.current;
+    if (!textarea) {
+      insertAtCursor("<ul>\n  <li>Item</li>\n</ul>");
+      return;
+    }
+    const start = textarea.selectionStart ?? content.length;
+    const end = textarea.selectionEnd ?? content.length;
+    const selected = content.slice(start, end).trim();
+    if (!selected) {
+      insertAtCursor("<ul>\n  <li>Item</li>\n</ul>");
+      return;
+    }
+    const items = selected.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+    const list = `<ul>\n${items.map((item) => `  <li>${item}</li>`).join("\n")}\n</ul>`;
+    setContent((prev) => prev.slice(0, start) + list + prev.slice(end));
+    requestAnimationFrame(() => {
+      textarea.focus();
+      const position = start + list.length;
+      textarea.setSelectionRange(position, position);
+    });
+  };
+
   const insertLink = () => {
     const url = window.prompt("Enter link URL");
     if (!url) return;
@@ -110,6 +151,22 @@ export default function AdminArticleEditor() {
 
   const insertPageBreak = () => {
     insertAtCursor("\n<hr class=\"page-break\" />\n");
+  };
+
+  const ToolbarButton = ({ label, onClick, children }: { label: string; onClick: () => void; children: ReactNode }) => {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className="relative inline-flex items-center justify-center h-9 w-9 rounded-md border border-input text-muted-foreground hover:text-foreground hover:border-primary transition-colors group"
+        aria-label={label}
+      >
+        {children}
+        <span className="pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-foreground text-background text-[10px] font-body px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          {label}
+        </span>
+      </button>
+    );
   };
 
   const handleSave = (asDraft: boolean) => {
@@ -217,12 +274,30 @@ export default function AdminArticleEditor() {
                   </span>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 mt-2">
-                  <Button type="button" variant="outline" size="sm" onClick={insertLink}>
-                    Insert Link
-                  </Button>
-                  <Button type="button" variant="outline" size="sm" onClick={insertPageBreak}>
-                    Page Break
-                  </Button>
+                  <ToolbarButton label="Bold" onClick={() => wrapSelection("<strong>", "</strong>", "Bold text")}>
+                    <Bold className="h-4 w-4" />
+                  </ToolbarButton>
+                  <ToolbarButton label="Italic" onClick={() => wrapSelection("<em>", "</em>", "Italic text")}>
+                    <Italic className="h-4 w-4" />
+                  </ToolbarButton>
+                  <ToolbarButton label="Underline" onClick={() => wrapSelection("<u>", "</u>", "Underline text")}>
+                    <Underline className="h-4 w-4" />
+                  </ToolbarButton>
+                  <ToolbarButton label="Heading" onClick={() => wrapSelection("<h2>", "</h2>", "Section heading")}>
+                    <Heading2 className="h-4 w-4" />
+                  </ToolbarButton>
+                  <ToolbarButton label="Quote" onClick={() => wrapSelection("<blockquote>", "</blockquote>", "Quote text")}>
+                    <Quote className="h-4 w-4" />
+                  </ToolbarButton>
+                  <ToolbarButton label="List" onClick={wrapAsList}>
+                    <List className="h-4 w-4" />
+                  </ToolbarButton>
+                  <ToolbarButton label="Link" onClick={insertLink}>
+                    <LinkIcon className="h-4 w-4" />
+                  </ToolbarButton>
+                  <ToolbarButton label="Page Break" onClick={insertPageBreak}>
+                    <SeparatorHorizontal className="h-4 w-4" />
+                  </ToolbarButton>
                   <span className="text-xs font-body text-muted-foreground">
                     HTML supported. Example: <span className="font-mono text-[11px]">&lt;strong&gt;bold&lt;/strong&gt;</span>
                   </span>
