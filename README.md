@@ -84,4 +84,3 @@ the-daily-chronicle/
 ├── vite.config.ts
 └── README.md
 ```
-```
