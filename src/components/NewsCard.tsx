@@ -1,11 +1,11 @@
 import { Link } from "react-router-dom";
 import { Headphones, Bookmark, Share2, Clock } from "lucide-react";
-import { Article } from "@/data/mockData";
+import { Post } from "@/types/api";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { useBookmarks } from "@/contexts/BookmarksContext";
 
 interface NewsCardProps {
-  article: Article;
+  article: Post;
   variant?: "default" | "compact" | "horizontal" | "editorial";
 }
 

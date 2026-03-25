@@ -16,8 +16,9 @@ const CategoryPage = () => {
   });
   
   const { data: articles, isLoading } = useQuery({
-    queryKey: ['posts'],
-    queryFn: getPosts,
+    queryKey: ['posts', 'category', slug],
+    queryFn: () => getPosts({ category: slug }),
+    enabled: !!slug,
   });
 
   if (isLoading) {
@@ -34,17 +35,7 @@ const CategoryPage = () => {
 
   const category = categories?.find((c) => c.slug === slug);
   
-  let categoryArticles = articles?.filter((a) => a.categorySlug === slug) || [];
-  
-  if (categoryArticles.length === 0) {
-    categoryArticles = articles?.filter(
-      (a) => a.categoryName.toLowerCase() === slug?.toLowerCase()
-    ) || [];
-  }
-
-  if (categoryArticles.length === 0 && articles) {
-    categoryArticles = articles.slice(0, 6);
-  }
+  const categoryArticles = articles || [];
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -53,11 +44,17 @@ const CategoryPage = () => {
         <h1 className="font-headline font-bold text-2xl md:text-3xl mb-6 capitalize">
           {category?.name || slug}
         </h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {categoryArticles.map((article) => (
-            <NewsCard key={article.id} article={article} />
-          ))}
-        </div>
+        {categoryArticles.length === 0 ? (
+          <p className="font-body text-sm text-muted-foreground">
+            No articles found in this category.
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {categoryArticles.map((article) => (
+              <NewsCard key={article.id} article={article} />
+            ))}
+          </div>
+        )}
       </main>
       <SiteFooter />
     </div>

@@ -1,21 +1,29 @@
 import { Link } from "react-router-dom";
-import { Article } from "@/data/mockData";
 import { ArrowRight, Headphones } from "lucide-react";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
+import { useQuery } from "@tanstack/react-query";
+import { getPosts } from "@/api/posts";
+import { Post } from "@/types/api";
 
 interface CategorySectionProps {
   title: string;
   slug: string;
-  articles: Article[];
 }
 
-const CategorySection = ({ title, slug, articles }: CategorySectionProps) => {
+const CategorySection = ({ title, slug }: CategorySectionProps) => {
+  const { data: articles = [], isLoading } = useQuery({
+    queryKey: ["posts", "category", slug],
+    queryFn: () => getPosts({ category: slug }),
+    enabled: !!slug,
+  });
   const { playArticle } = useAudioPlayer();
 
-  if (articles.length === 0) return null;
+  const safeArticles = articles || [];
 
-  const mainArticle = articles[0];
-  const sideArticles = articles.slice(1, 4);
+  if (isLoading || safeArticles.length === 0) return null;
+
+  const mainArticle: Post = safeArticles[0];
+  const sideArticles: Post[] = safeArticles.slice(1, 4);
 
   return (
     <section className="py-8 md:py-12 border-t-[3px] border-primary/90 mt-8">
@@ -38,30 +46,36 @@ const CategorySection = ({ title, slug, articles }: CategorySectionProps) => {
         {/* Left Column: Main Featured Article (7 cols on desktop) */}
         <div className="md:col-span-7 flex flex-col group h-full">
           <Link to={`/article/${mainArticle.slug}`} className="block relative overflow-hidden rounded-sm mb-5 flex-shrink-0">
-            <img
-              src={mainArticle.image}
-              alt={mainArticle.title}
-              className="w-full aspect-video object-cover hover:scale-[1.02] transition-transform duration-500 ease-out"
-              loading="lazy"
-            />
+            {mainArticle.image ? (
+              <img
+                src={mainArticle.image}
+                alt={mainArticle.title}
+                className="w-full aspect-video object-cover hover:scale-[1.02] transition-transform duration-500 ease-out"
+                loading="lazy"
+              />
+            ) : (
+              <div className="w-full aspect-video bg-gradient-to-br from-muted via-muted/60 to-background" />
+            )}
           </Link>
 
           <div className="flex items-center justify-between mb-4 flex-shrink-0">
             <span className="text-primary text-xs font-body font-bold uppercase tracking-widest">
               Featured
             </span>
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                playArticle(mainArticle);
-              }}
-              className="flex items-center gap-1.5 text-primary bg-primary/10 hover:bg-primary/20 px-3 py-1.5 rounded-full transition-colors"
-              aria-label="Listen to article"
-            >
-              <Headphones className="h-4 w-4" />
-              <span className="text-xs font-bold uppercase tracking-wide">Listen</span>
-            </button>
+            {mainArticle.audioUrl && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  playArticle(mainArticle);
+                }}
+                className="flex items-center gap-1.5 text-primary bg-primary/10 hover:bg-primary/20 px-3 py-1.5 rounded-full transition-colors"
+                aria-label="Listen to article"
+              >
+                <Headphones className="h-4 w-4" />
+                <span className="text-xs font-bold uppercase tracking-wide">Listen</span>
+              </button>
+            )}
           </div>
 
           <Link to={`/article/${mainArticle.slug}`} className="block flex-1 flex flex-col">

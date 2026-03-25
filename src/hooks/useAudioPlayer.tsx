@@ -1,20 +1,20 @@
 import { createContext, useContext, useState, ReactNode } from "react";
-import { Article } from "@/data/mockData";
+import { Post } from "@/types/api";
 
 interface AudioPlayerContextType {
-    currentArticle: Article | null;
+    currentArticle: Post | null;
     isOpen: boolean;
-    playArticle: (article: Article) => void;
+    playArticle: (article: Post) => void;
     closePlayer: () => void;
 }
 
 const AudioPlayerContext = createContext<AudioPlayerContextType | null>(null);
 
 export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
-    const [currentArticle, setCurrentArticle] = useState<Article | null>(null);
+    const [currentArticle, setCurrentArticle] = useState<Post | null>(null);
     const [isOpen, setIsOpen] = useState(false);
 
-    const playArticle = (article: Article) => {
+    const playArticle = (article: Post) => {
         setCurrentArticle(article);
         setIsOpen(true);
     };
