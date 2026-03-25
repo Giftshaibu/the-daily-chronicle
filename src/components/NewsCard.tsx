@@ -70,7 +70,7 @@ const NewsCard = ({ article, variant = "default" }: NewsCardProps) => {
             </div>
           </div>
           <div className="text-right text-[9px] font-body text-muted-foreground uppercase tracking-widest mt-1">
-            Source : The Daily Times
+            Source : The Daily Post
           </div>
         </div>
       </div>
