@@ -1,4 +1,3 @@
-```markdown
 # The Post Office
 
 A modern news aggregator application that fetches and displays the latest news from various sources using the GNews API.
