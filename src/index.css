@@ -91,3 +91,23 @@
     text-wrap: balance;
   }
 }
+
+.article-content a {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.article-content .page-break {
+  border: 0;
+  border-top: 1px dashed hsl(var(--border));
+  margin: 2rem 0;
+}
+
+@media print {
+  .article-content .page-break {
+    break-after: page;
+    border: 0;
+    margin: 0;
+  }
+}

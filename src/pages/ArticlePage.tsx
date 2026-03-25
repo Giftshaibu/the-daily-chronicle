@@ -99,7 +99,7 @@ const ArticlePage = () => {
 
           {/* Main Content (8 cols) */}
           <div className="md:col-span-8 flex flex-col pb-4 h-full md:border-r md:border-border md:pr-10">
-            <div className="font-headline text-sm leading-relaxed text-foreground text-justify prose prose-sm max-w-none md:columns-2 md:gap-10">
+            <div className="article-content font-headline text-sm leading-relaxed text-foreground text-justify prose prose-sm max-w-none md:columns-2 md:gap-10">
               {article.image && (
                 <img
                   src={article.image}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Save, Globe, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,7 @@ export default function AdminArticleEditor() {
   const [content, setContent] = useState("");
   const [categoryIds, setCategoryIds] = useState<string[]>([]);
   const [isPublished, setIsPublished] = useState(false);
+  const contentRef = useRef<HTMLTextAreaElement | null>(null);
 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [audioFile, setAudioFile] = useState<File | null>(null);
@@ -83,6 +84,33 @@ export default function AdminArticleEditor() {
 
   const wordCount = content.replace(/<[^>]*>?/gm, '').trim().split(/\s+/).filter(word => word.length > 0).length;
   const MIN_WORDS = 300;
+
+  const insertAtCursor = (snippet: string) => {
+    const textarea = contentRef.current;
+    if (!textarea) {
+      setContent((prev) => prev + snippet);
+      return;
+    }
+    const start = textarea.selectionStart ?? content.length;
+    const end = textarea.selectionEnd ?? content.length;
+    setContent((prev) => prev.slice(0, start) + snippet + prev.slice(end));
+    requestAnimationFrame(() => {
+      textarea.focus();
+      const position = start + snippet.length;
+      textarea.setSelectionRange(position, position);
+    });
+  };
+
+  const insertLink = () => {
+    const url = window.prompt("Enter link URL");
+    if (!url) return;
+    const text = window.prompt("Enter link text", url) || url;
+    insertAtCursor(`<a href="${url}" target="_blank" rel="noopener noreferrer">${text}</a>`);
+  };
+
+  const insertPageBreak = () => {
+    insertAtCursor("\n<hr class=\"page-break\" />\n");
+  };
 
   const handleSave = (asDraft: boolean) => {
     if (!title.trim()) {
@@ -188,7 +216,19 @@ export default function AdminArticleEditor() {
                     {wordCount} / {MIN_WORDS} words {wordCount < MIN_WORDS && "(minimum required)"}
                   </span>
                 </div>
+                <div className="flex flex-wrap items-center gap-2 mt-2">
+                  <Button type="button" variant="outline" size="sm" onClick={insertLink}>
+                    Insert Link
+                  </Button>
+                  <Button type="button" variant="outline" size="sm" onClick={insertPageBreak}>
+                    Page Break
+                  </Button>
+                  <span className="text-xs font-body text-muted-foreground">
+                    HTML supported. Example: <span className="font-mono text-[11px]">&lt;strong&gt;bold&lt;/strong&gt;</span>
+                  </span>
+                </div>
                 <Textarea
+                  ref={contentRef}
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   placeholder="Write your article content here... (supports HTML)"
