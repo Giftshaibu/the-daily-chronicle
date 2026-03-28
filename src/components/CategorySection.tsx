@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { ArrowRight, Headphones } from "lucide-react";
-import { useAudioPlayer } from "@/hooks/useAudioPlayer";
+import { useAudioPlayer } from "@/hooks/audio-player-context";
 import { useQuery } from "@tanstack/react-query";
 import { getPosts } from "@/api/posts";
 import { Post } from "@/types/api";

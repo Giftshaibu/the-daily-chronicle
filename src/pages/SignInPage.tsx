@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { AxiosError } from "axios";
 import logo1 from "@/assets/thePostOffice1.png";
 import { useMutation } from "@tanstack/react-query";
 import { login } from "@/api/auth";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth-context";
+
+type ApiError = AxiosError<{ message?: string }>;
 
 const SignInPage = () => {
   const [email, setEmail] = useState("");
@@ -22,7 +25,7 @@ const SignInPage = () => {
         navigate('/');
       }
     },
-    onError: (err: any) => {
+    onError: (err: ApiError) => {
       const status = err?.response?.status;
       if (status === 403) {
         setErrorMsg("Your email is not verified. Please check your inbox and click the verification link before signing in.");

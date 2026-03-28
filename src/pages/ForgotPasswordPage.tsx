@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { AxiosError } from "axios";
 import logo1 from "@/assets/thePostOffice1.png";
 import { useMutation } from "@tanstack/react-query";
 import { forgotPassword } from "@/api/auth";
+
+type ApiError = AxiosError<{ message?: string }>;
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState("");
@@ -15,7 +18,7 @@ const ForgotPasswordPage = () => {
       setSuccessMsg("If your email exists in our system, you will receive a password reset link shortly.");
       setErrorMsg("");
     },
-    onError: (error: any) => {
+    onError: (error: ApiError) => {
       setErrorMsg(error.response?.data?.message || "Something went wrong. Please try again.");
       setSuccessMsg("");
     },

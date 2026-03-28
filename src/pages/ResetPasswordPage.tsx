@@ -1,8 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { AxiosError } from "axios";
 import logo1 from "@/assets/thePostOffice1.png";
 import { useMutation } from "@tanstack/react-query";
 import { resetPassword } from "@/api/auth";
+
+type ApiError = AxiosError<{ message?: string }>;
 
 const ResetPasswordPage = () => {
   const { token } = useParams<{ token: string }>();
@@ -27,7 +30,7 @@ const ResetPasswordPage = () => {
       setSuccessMsg("Password reset successfully! Redirecting to sign in...");
       setTimeout(() => navigate('/signin'), 3000);
     },
-    onError: (error: any) => {
+    onError: (error: ApiError) => {
       setErrorMsg(error.response?.data?.message || "Invalid or expired token. Please try again.");
     },
   });

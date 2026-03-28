@@ -1,14 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
-
-interface BookmarksContextType {
-    bookmarkedIds: string[];
-    addBookmark: (articleId: string) => void;
-    removeBookmark: (articleId: string) => void;
-    toggleBookmark: (articleId: string) => void;
-    isBookmarked: (articleId: string) => boolean;
-}
-
-const BookmarksContext = createContext<BookmarksContextType | undefined>(undefined);
+import React, { useState, useEffect } from "react";
+import { BookmarksContext } from "@/contexts/bookmarks-context";
 
 export const BookmarksProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [bookmarkedIds, setBookmarkedIds] = useState<string[]>(() => {
@@ -65,12 +56,4 @@ export const BookmarksProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             {children}
         </BookmarksContext.Provider>
     );
-};
-
-export const useBookmarks = () => {
-    const context = useContext(BookmarksContext);
-    if (context === undefined) {
-        throw new Error("useBookmarks must be used within a BookmarksProvider");
-    }
-    return context;
 };

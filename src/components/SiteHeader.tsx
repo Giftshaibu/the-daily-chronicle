@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { getCategories } from "@/api/categories";
 import logo from "@/assets/thePostOffice.png";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth-context";
 
 /** Small role badge used in both desktop & mobile */
 const RoleBadge = ({ role }: { role: string }) => {

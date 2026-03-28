@@ -1,8 +1,16 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { AxiosError } from "axios";
 import logo1 from "@/assets/thePostOffice1Red.png";
 import { useMutation } from "@tanstack/react-query";
 import { register, resendVerificationEmailWithToken } from "@/api/auth";
+
+type RegisterError = AxiosError<{
+  message?: string;
+  errors?: {
+    email?: string[];
+  };
+}>;
 
 const SignUpPage = () => {
   const [name, setName] = useState("");
@@ -23,7 +31,7 @@ const SignUpPage = () => {
       setRegisteredEmail(email);
       setRegistered(true);
     },
-    onError: (err: any) => {
+    onError: (err: RegisterError) => {
       const message =
         err?.response?.data?.message ||
         err?.response?.data?.errors?.email?.[0] ||

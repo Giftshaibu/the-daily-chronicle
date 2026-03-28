@@ -1,14 +1,6 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { useState, ReactNode } from "react";
 import { Post } from "@/types/api";
-
-interface AudioPlayerContextType {
-    currentArticle: Post | null;
-    isOpen: boolean;
-    playArticle: (article: Post) => void;
-    closePlayer: () => void;
-}
-
-const AudioPlayerContext = createContext<AudioPlayerContextType | null>(null);
+import { AudioPlayerContext } from "@/hooks/audio-player-context";
 
 export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     const [currentArticle, setCurrentArticle] = useState<Post | null>(null);
@@ -28,10 +20,4 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
             {children}
         </AudioPlayerContext.Provider>
     );
-};
-
-export const useAudioPlayer = () => {
-    const ctx = useContext(AudioPlayerContext);
-    if (!ctx) throw new Error("useAudioPlayer must be used within AudioPlayerProvider");
-    return ctx;
 };

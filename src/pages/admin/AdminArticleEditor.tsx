@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, type ReactNode } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { AxiosError } from "axios";
 import { ArrowLeft, Save, Globe, Eye, Bold, Italic, Underline, Heading2, Quote, List, Link as LinkIcon, SeparatorHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAdminArticle, createAdminArticle, updateAdminArticle } from "@/api/admin";
 import { getCategories } from "@/api/categories";
 import { useToast } from "@/hooks/use-toast";
+import { Category } from "@/types/api";
+
+type ApiError = AxiosError<{ message?: string }>;
 
 export default function AdminArticleEditor() {
   const { id } = useParams();
@@ -38,7 +42,7 @@ export default function AdminArticleEditor() {
     queryFn: getCategories,
   });
 
-  const filteredCategories = categories.filter((cat: any) =>
+  const filteredCategories = categories.filter((cat: Category) =>
     cat.name.toLowerCase().includes(categorySearch.toLowerCase())
   );
 
@@ -76,7 +80,7 @@ export default function AdminArticleEditor() {
       toast({ title: "Article saved successfully" });
       navigate("/admin/articles");
     },
-    onError: (error: any) => {
+    onError: (error: ApiError) => {
       const msg = error.response?.data?.message || error.message || "An unknown error occurred.";
       toast({ title: "Failed to save article", description: msg, variant: "destructive" });
     },

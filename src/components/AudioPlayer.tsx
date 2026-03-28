@@ -11,7 +11,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
-import { useAudioPlayer } from "@/hooks/useAudioPlayer";
+import { useAudioPlayer } from "@/hooks/audio-player-context";
 
 const GlobalAudioPlayer = () => {
   const { currentArticle, isOpen, closePlayer } = useAudioPlayer();

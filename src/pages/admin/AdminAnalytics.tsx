@@ -3,6 +3,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 import { useQuery } from "@tanstack/react-query";
 import { getAdminArticles } from "@/api/admin";
+import { AdminArticle } from "@/types/admin";
 
 export default function AdminAnalytics() {
   const { data: adminArticles = [] } = useQuery({
@@ -11,12 +12,12 @@ export default function AdminAnalytics() {
   });
 
   const topArticles = [...adminArticles]
-    .sort((a: any, b: any) => (b.views || 0) - (a.views || 0))
+    .sort((a: AdminArticle, b: AdminArticle) => (b.views || 0) - (a.views || 0))
     .slice(0, 5)
-    .map((a: any) => ({ title: a.title, views: a.views || 0 }));
+    .map((article: AdminArticle) => ({ title: article.title, views: article.views || 0 }));
 
-  const viewsData: any[] = [];
-  const engagementData: any[] = [];
+  const viewsData: Array<{ date: string; views: number }> = [];
+  const engagementData: Array<{ date: string; reads: number; bookmarks: number }> = [];
 
   return (
     <div className="space-y-6">

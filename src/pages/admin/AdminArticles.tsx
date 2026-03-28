@@ -8,7 +8,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAdminArticles, deleteAdminArticle, updateAdminArticle } from "@/api/admin";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth-context";
+import { AdminArticle } from "@/types/admin";
 
 export default function AdminArticles() {
   const { toast } = useToast();
@@ -47,7 +48,7 @@ export default function AdminArticles() {
     deleteMutation.mutate(id);
   };
 
-  const handleTogglePublish = (article: any) => {
+  const handleTogglePublish = (article: AdminArticle) => {
     const newStatus = article.status === "published" ? "draft" : "published";
     togglePublishMutation.mutate({ id: article.id, status: newStatus });
   };

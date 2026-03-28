@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import logo1 from "@/assets/thePostOffice1.png";
 import { verifyEmail, getUserProfile } from "@/api/auth";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth-context";
 
 const VerifyEmailPage = () => {
   const { id, hash } = useParams<{ id: string; hash: string }>();

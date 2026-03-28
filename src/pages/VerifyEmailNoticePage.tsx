@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { AxiosError } from "axios";
 import logo1 from "@/assets/thePostOffice1.png";
 import { useMutation } from "@tanstack/react-query";
 import { resendVerificationEmail } from "@/api/auth";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth-context";
+
+type ApiError = AxiosError<{ message?: string }>;
 
 const VerifyEmailNoticePage = () => {
   const [successMsg, setSuccessMsg] = useState("");
@@ -16,7 +19,7 @@ const VerifyEmailNoticePage = () => {
       setSuccessMsg("A new verification link has been sent to your email address.");
       setErrorMsg("");
     },
-    onError: (error: any) => {
+    onError: (error: ApiError) => {
       setErrorMsg(error.response?.data?.message || "Failed to send verification link. Please try again.");
       setSuccessMsg("");
     },

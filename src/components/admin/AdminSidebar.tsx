@@ -20,9 +20,9 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarHeader,
-  useSidebar,
 } from "@/components/ui/sidebar";
-import { useAuth } from "@/context/AuthContext";
+import { useSidebar } from "@/components/ui/sidebar-context";
+import { useAuth } from "@/context/auth-context";
 
 const authorMenuItems = [
   { title: "Dashboard", url: "/admin", icon: LayoutDashboard },

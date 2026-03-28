@@ -2,9 +2,10 @@ import { Bookmark } from "lucide-react";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import NewsCard from "@/components/NewsCard";
-import { useBookmarks } from "@/contexts/BookmarksContext";
+import { useBookmarks } from "@/contexts/bookmarks-context";
 import { useQuery } from "@tanstack/react-query";
 import { getPosts } from "@/api/posts";
+import { Post } from "@/types/api";
 
 const BookmarksPage = () => {
   const { bookmarkedIds } = useBookmarks();
@@ -33,7 +34,7 @@ const BookmarksPage = () => {
           <p className="font-body text-muted-foreground">No bookmarks yet. Save articles to read later.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {bookmarkedArticles.map((article: any) => (
+            {bookmarkedArticles.map((article: Post) => (
               <NewsCard key={article.id} article={article} />
             ))}
           </div>

@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
 import { Headphones, Bookmark, Share2, Clock } from "lucide-react";
 import { Post } from "@/types/api";
-import { useAudioPlayer } from "@/hooks/useAudioPlayer";
-import { useBookmarks } from "@/contexts/BookmarksContext";
+import { useAudioPlayer } from "@/hooks/audio-player-context";
+import { useBookmarks } from "@/contexts/bookmarks-context";
 import { shareArticle } from "@/lib/share";
 import { toast } from "@/hooks/use-toast";
 

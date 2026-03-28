@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getAdminArticles, getAdminActivities } from "@/api/admin";
+import { AdminArticle } from "@/types/admin";
 
 export default function AdminDashboard() {
   const { data: adminArticles = [], isLoading: isLoadingArticles } = useQuery({
@@ -18,9 +19,9 @@ export default function AdminDashboard() {
   const recentArticles = adminArticles.slice(0, 5);
 
   const totalArticles = adminArticles.length;
-  const draftArticles = adminArticles.filter((a: any) => a.status === 'draft').length;
-  const publishedArticles = adminArticles.filter((a: any) => a.status === 'published').length;
-  const reviewArticles = adminArticles.filter((a: any) => a.status === 'review').length;
+  const draftArticles = adminArticles.filter((article: AdminArticle) => article.status === 'draft').length;
+  const publishedArticles = adminArticles.filter((article: AdminArticle) => article.status === 'published').length;
+  const reviewArticles = adminArticles.filter((article: AdminArticle) => article.status === 'review').length;
 
   const stats = [
     { label: "Total Articles", value: totalArticles.toString(), icon: FileText, change: "All time" },
