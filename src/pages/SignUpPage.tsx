@@ -4,6 +4,7 @@ import { AxiosError } from "axios";
 import logo1 from "@/assets/thePostOffice1Red.png";
 import { useMutation } from "@tanstack/react-query";
 import { register, resendVerificationEmailWithToken } from "@/api/auth";
+import { useAuth } from "@/context/auth-context";
 
 type RegisterError = AxiosError<{
   message?: string;
@@ -13,6 +14,7 @@ type RegisterError = AxiosError<{
 }>;
 
 const SignUpPage = () => {
+  const { setAuth } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,6 +29,7 @@ const SignUpPage = () => {
     mutationFn: () => register(name, email, password),
     onSuccess: (data) => {
       // Do NOT log the user into the app — store token only for resend
+      setAuth(data.user, data.access_token);
       setTempToken(data.access_token);
       setRegisteredEmail(email);
       setRegistered(true);

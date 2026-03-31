@@ -8,6 +8,7 @@ const VerifyEmailPage = () => {
   const { id, hash } = useParams<{ id: string; hash: string }>();
   const [searchParams] = useSearchParams();
   const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
+  const [redirectPath, setRedirectPath] = useState("/");
   const navigate = useNavigate();
   const { setAuth, token } = useAuth();
   
@@ -24,15 +25,21 @@ const VerifyEmailPage = () => {
         }
 
         await verifyEmail(url);
-        
-        // Refresh the user profile to get the updated email_verified_at
+
+        let redirectTo = "/";
+
         if (token) {
           const user = await getUserProfile();
           setAuth(user, token);
+
+          if (user.role === "admin" || user.role === "author") {
+            redirectTo = "/admin";
+          }
         }
-        
+
+        setRedirectPath(redirectTo);
         setStatus('success');
-        setTimeout(() => navigate('/'), 3000);
+        setTimeout(() => navigate(redirectTo), 3000);
       } catch (error) {
         setStatus('error');
       }
@@ -60,7 +67,9 @@ const VerifyEmailPage = () => {
           <>
             <h2 className="text-xl mb-4 text-green-400">Email Verified!</h2>
             <p className="text-sm opacity-80 mb-6">Thank you for verifying your email address. You will be redirected shortly.</p>
-            <Link to="/" className="underline underline-offset-2 hover:opacity-80">Go to Home Page</Link>
+            <Link to={redirectPath} className="underline underline-offset-2 hover:opacity-80">
+              {redirectPath === "/admin" ? "Go to Admin" : "Go to Home Page"}
+            </Link>
           </>
         )}
         {status === 'error' && (
