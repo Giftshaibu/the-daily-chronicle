@@ -24,8 +24,18 @@ export const login = async (email: string, password: string): Promise<AuthRespon
   return apiClient.post('/login', { email, password });
 };
 
-export const register = async (name: string, email: string, password: string): Promise<RegisterResponse> => {
-  return apiClient.post('/register', { name, email, password });
+export const register = async (
+  name: string,
+  email: string,
+  password: string,
+  passwordConfirmation: string
+): Promise<RegisterResponse> => {
+  return apiClient.post('/register', {
+    name,
+    email,
+    password,
+    password_confirmation: passwordConfirmation,
+  });
 };
 
 export const logout = async (): Promise<void> => {

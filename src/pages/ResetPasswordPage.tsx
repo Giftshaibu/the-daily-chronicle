@@ -19,6 +19,14 @@ const ResetPasswordPage = () => {
   const [successMsg, setSuccessMsg] = useState("");
   const navigate = useNavigate();
 
+  const passwordChecks = [
+    { label: "12 or more characters", valid: password.length >= 12 },
+    { label: "Uppercase and lowercase letters", valid: /[a-z]/.test(password) && /[A-Z]/.test(password) },
+    { label: "At least one number", valid: /\d/.test(password) },
+    { label: "At least one symbol", valid: /[^A-Za-z0-9]/.test(password) },
+    { label: "Passwords match", valid: password.length > 0 && password === passwordConfirmation },
+  ];
+
   const resetPasswordMutation = useMutation({
     mutationFn: () => resetPassword({
       token: token || "",
@@ -39,6 +47,10 @@ const ResetPasswordPage = () => {
     e.preventDefault();
     if (password !== passwordConfirmation) {
       setErrorMsg("Passwords do not match.");
+      return;
+    }
+    if (passwordChecks.some((check) => !check.valid)) {
+      setErrorMsg("Please create a stronger password that satisfies every requirement.");
       return;
     }
     setErrorMsg("");
@@ -74,6 +86,7 @@ const ResetPasswordPage = () => {
             <div className="bg-primary px-4 py-3 rounded-sm hidden">
               <input
                 type="email"
+                autoComplete="email"
                 placeholder="Enter Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -84,10 +97,12 @@ const ResetPasswordPage = () => {
             <div className="bg-primary px-4 py-3 rounded-sm">
               <input
                 type="password"
+                autoComplete="new-password"
                 placeholder="New Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                minLength={12}
                 className="w-full bg-transparent text-primary-foreground font-body text-sm outline-none border-b border-primary-foreground placeholder:text-primary-foreground/70"
               />
             </div>
@@ -95,12 +110,28 @@ const ResetPasswordPage = () => {
             <div className="bg-primary px-4 py-3 rounded-sm">
               <input
                 type="password"
+                autoComplete="new-password"
                 placeholder="Confirm password"
                 value={passwordConfirmation}
                 onChange={(e) => setPasswordConfirmation(e.target.value)}
                 required
+                minLength={12}
                 className="w-full bg-transparent text-primary-foreground font-body text-sm outline-none border-b border-primary-foreground placeholder:text-primary-foreground/70"
               />
+            </div>
+
+            <div className="border border-primary/20 px-4 py-3 rounded-sm">
+              <p className="text-primary font-body text-xs font-semibold mb-2">Password must include:</p>
+              <ul className="space-y-1">
+                {passwordChecks.map((check) => (
+                  <li
+                    key={check.label}
+                    className={`font-body text-xs ${check.valid ? "text-primary" : "text-primary/60"}`}
+                  >
+                    {check.valid ? "OK" : "-"} {check.label}
+                  </li>
+                ))}
+              </ul>
             </div>
 
             <button

@@ -4,20 +4,21 @@ import { AxiosError } from "axios";
 import logo1 from "@/assets/thePostOffice1Red.png";
 import { useMutation } from "@tanstack/react-query";
 import { register, resendVerificationEmailWithToken } from "@/api/auth";
-import { useAuth } from "@/context/auth-context";
 
 type RegisterError = AxiosError<{
   message?: string;
   errors?: {
+    name?: string[];
     email?: string[];
+    password?: string[];
   };
 }>;
 
 const SignUpPage = () => {
-  const { setAuth } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordConfirmation, setPasswordConfirmation] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [registered, setRegistered] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState("");
@@ -25,11 +26,18 @@ const SignUpPage = () => {
   // Store token locally (not in global auth) — used only for the resend button
   const [tempToken, setTempToken] = useState("");
 
+  const passwordChecks = [
+    { label: "12 or more characters", valid: password.length >= 12 },
+    { label: "Uppercase and lowercase letters", valid: /[a-z]/.test(password) && /[A-Z]/.test(password) },
+    { label: "At least one number", valid: /\d/.test(password) },
+    { label: "At least one symbol", valid: /[^A-Za-z0-9]/.test(password) },
+    { label: "Passwords match", valid: password.length > 0 && password === passwordConfirmation },
+  ];
+
   const registerMutation = useMutation({
-    mutationFn: () => register(name, email, password),
+    mutationFn: () => register(name, email, password, passwordConfirmation),
     onSuccess: (data) => {
       // Do NOT log the user into the app — store token only for resend
-      setAuth(data.user, data.access_token);
       setTempToken(data.access_token);
       setRegisteredEmail(email);
       setRegistered(true);
@@ -37,6 +45,8 @@ const SignUpPage = () => {
     onError: (err: RegisterError) => {
       const message =
         err?.response?.data?.message ||
+        err?.response?.data?.errors?.password?.[0] ||
+        err?.response?.data?.errors?.name?.[0] ||
         err?.response?.data?.errors?.email?.[0] ||
         "Registration failed. Please try again.";
       setErrorMsg(message);
@@ -52,6 +62,10 @@ const SignUpPage = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
+    if (passwordChecks.some((check) => !check.valid)) {
+      setErrorMsg("Please create a stronger password that satisfies every requirement.");
+      return;
+    }
     registerMutation.mutate();
   };
 
@@ -149,6 +163,7 @@ const SignUpPage = () => {
           <div className="bg-white px-4 py-3 rounded-sm">
             <input
               type="text"
+              autoComplete="name"
               placeholder="Enter Full Name"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -160,6 +175,7 @@ const SignUpPage = () => {
           <div className="bg-white px-4 py-3 rounded-sm">
             <input
               type="email"
+              autoComplete="email"
               placeholder="Enter Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -171,13 +187,41 @@ const SignUpPage = () => {
           <div className="bg-white px-4 py-3 rounded-sm">
             <input
               type="password"
-              placeholder="Enter Password (min 8 chars)"
+              autoComplete="new-password"
+              placeholder="Create Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              minLength={8}
+              minLength={12}
               className="w-full bg-transparent text-primary font-body text-sm outline-none border-b border-primary placeholder:text-primary/60"
             />
+          </div>
+
+          <div className="bg-white px-4 py-3 rounded-sm">
+            <input
+              type="password"
+              autoComplete="new-password"
+              placeholder="Confirm Password"
+              value={passwordConfirmation}
+              onChange={(e) => setPasswordConfirmation(e.target.value)}
+              required
+              minLength={12}
+              className="w-full bg-transparent text-primary font-body text-sm outline-none border-b border-primary placeholder:text-primary/60"
+            />
+          </div>
+
+          <div className="bg-white/10 border border-white/30 px-4 py-3 rounded-sm">
+            <p className="text-primary-foreground font-body text-xs font-semibold mb-2">Password must include:</p>
+            <ul className="space-y-1">
+              {passwordChecks.map((check) => (
+                <li
+                  key={check.label}
+                  className={`font-body text-xs ${check.valid ? "text-primary-foreground" : "text-primary-foreground/65"}`}
+                >
+                  {check.valid ? "OK" : "-"} {check.label}
+                </li>
+              ))}
+            </ul>
           </div>
 
           <button
