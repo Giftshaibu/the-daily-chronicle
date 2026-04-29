@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, type ReactNode } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { AxiosError } from "axios";
-import { ArrowLeft, Save, Globe, Eye, Bold, Italic, Underline, Heading2, Quote, List, Link as LinkIcon, SeparatorHorizontal } from "lucide-react";
+import { ArrowLeft, Save, Globe, Eye, Bold, Italic, Underline, Heading2, Quote, List, Link as LinkIcon, SeparatorHorizontal, ImagePlus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getAdminArticle, createAdminArticle, updateAdminArticle } from "@/api/admin";
+import { getAdminArticle, createAdminArticle, updateAdminArticle, uploadAdminMedia } from "@/api/admin";
 import { getCategories } from "@/api/categories";
 import { useToast } from "@/hooks/use-toast";
 import { Category } from "@/types/api";
@@ -30,12 +30,14 @@ export default function AdminArticleEditor() {
   const [categoryIds, setCategoryIds] = useState<string[]>([]);
   const [isPublished, setIsPublished] = useState(false);
   const contentRef = useRef<HTMLTextAreaElement | null>(null);
+  const inlineImageInputRef = useRef<HTMLInputElement | null>(null);
 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [previewImageUrl, setPreviewImageUrl] = useState("");
   const [existingAudioUrl, setExistingAudioUrl] = useState("");
   const [categorySearch, setCategorySearch] = useState("");
+  const [isUploadingInlineImage, setIsUploadingInlineImage] = useState(false);
 
   const { data: categories = [] } = useQuery({
     queryKey: ['categories'],
@@ -151,6 +153,49 @@ export default function AdminArticleEditor() {
     if (!url) return;
     const text = window.prompt("Enter link text", url) || url;
     insertAtCursor(`<a href="${url}" target="_blank" rel="noopener noreferrer">${text}</a>`);
+  };
+
+  const insertInlineImage = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "Image upload failed", description: "Please choose an image file.", variant: "destructive" });
+      return;
+    }
+
+    const altText = window.prompt("Describe this image for accessibility", file.name.replace(/\.[^.]+$/, "")) || "";
+    const caption = window.prompt("Add a caption (optional)", "") || "";
+    const formData = new FormData();
+    formData.append("file", file);
+
+    setIsUploadingInlineImage(true);
+    try {
+      const media = await uploadAdminMedia(formData);
+      const escapedAlt = altText.replace(/"/g, "&quot;");
+      const escapedCaption = caption
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+      const figure = [
+        "",
+        `<figure class="article-inline-image">`,
+        `  <img src="${media.url}" alt="${escapedAlt}" loading="lazy" />`,
+        escapedCaption ? `  <figcaption>${escapedCaption}</figcaption>` : "",
+        `</figure>`,
+        "",
+      ].filter(Boolean).join("\n");
+
+      insertAtCursor(figure);
+      toast({ title: "Image added to article body" });
+    } catch (error) {
+      const msg = error instanceof AxiosError
+        ? error.response?.data?.message || error.message
+        : "The image could not be uploaded.";
+      toast({ title: "Image upload failed", description: msg, variant: "destructive" });
+    } finally {
+      setIsUploadingInlineImage(false);
+      if (inlineImageInputRef.current) {
+        inlineImageInputRef.current.value = "";
+      }
+    }
   };
 
   const insertPageBreak = () => {
@@ -299,9 +344,23 @@ export default function AdminArticleEditor() {
                   <ToolbarButton label="Link" onClick={insertLink}>
                     <LinkIcon className="h-4 w-4" />
                   </ToolbarButton>
+                  <ToolbarButton label={isUploadingInlineImage ? "Uploading image" : "Image"} onClick={() => inlineImageInputRef.current?.click()}>
+                    {isUploadingInlineImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
+                  </ToolbarButton>
                   <ToolbarButton label="Page Break" onClick={insertPageBreak}>
                     <SeparatorHorizontal className="h-4 w-4" />
                   </ToolbarButton>
+                  <input
+                    ref={inlineImageInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={isUploadingInlineImage}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) void insertInlineImage(file);
+                    }}
+                  />
                   <span className="text-xs font-body text-muted-foreground">
                     HTML supported. Example: <span className="font-mono text-[11px]">&lt;strong&gt;bold&lt;/strong&gt;</span>
                   </span>
