@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { AxiosError } from "axios";
 import logo1 from "@/assets/thePostOffice1Red.png";
 import { useMutation } from "@tanstack/react-query";
@@ -15,6 +15,8 @@ type RegisterError = AxiosError<{
 }>;
 
 const SignUpPage = () => {
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -33,9 +35,14 @@ const SignUpPage = () => {
     { label: "At least one symbol", valid: /[^A-Za-z0-9]/.test(password) },
     { label: "Passwords match", valid: password.length > 0 && password === passwordConfirmation },
   ];
+  const rawNextPath = searchParams.get("next") || (location.state as { from?: { pathname?: string; search?: string } } | null)?.from?.pathname || "/";
+  const rawNextSearch = (location.state as { from?: { search?: string } } | null)?.from?.search || "";
+  const redirectPath = rawNextPath.startsWith("/") && !rawNextPath.startsWith("//") && rawNextPath !== "/signup"
+    ? `${rawNextPath}${rawNextSearch}`
+    : "/";
 
   const registerMutation = useMutation({
-    mutationFn: () => register(name, email, password, passwordConfirmation),
+    mutationFn: () => register(name, email, password, passwordConfirmation, redirectPath),
     onSuccess: (data) => {
       // Do NOT log the user into the app — store token only for resend
       setTempToken(data.access_token);
@@ -54,7 +61,7 @@ const SignUpPage = () => {
   });
 
   const resendMutation = useMutation({
-    mutationFn: () => resendVerificationEmailWithToken(tempToken),
+    mutationFn: () => resendVerificationEmailWithToken(tempToken, redirectPath),
     onSuccess: () => setResendMsg("Verification email sent! Please check your inbox."),
     onError: () => setResendMsg("Could not resend. Please try again."),
   });

@@ -28,13 +28,15 @@ export const register = async (
   name: string,
   email: string,
   password: string,
-  passwordConfirmation: string
+  passwordConfirmation: string,
+  redirectPath = '/'
 ): Promise<RegisterResponse> => {
   return apiClient.post('/register', {
     name,
     email,
     password,
     password_confirmation: passwordConfirmation,
+    redirect_path: redirectPath,
   });
 };
 
@@ -64,12 +66,12 @@ export const verifyEmail = async (url: string): Promise<{ status: string }> => {
   return apiClient.get(url);
 };
 
-export const resendVerificationEmail = async (): Promise<{ status: string }> => {
-  return apiClient.post('/email/verification-notification');
+export const resendVerificationEmail = async (redirectPath = '/'): Promise<{ status: string }> => {
+  return apiClient.post('/email/verification-notification', { redirect_path: redirectPath });
 };
 
-export const resendVerificationEmailWithToken = async (token: string): Promise<{ status: string }> => {
-  return apiClient.post('/email/verification-notification', {}, {
+export const resendVerificationEmailWithToken = async (token: string, redirectPath = '/'): Promise<{ status: string }> => {
+  return apiClient.post('/email/verification-notification', { redirect_path: redirectPath }, {
     headers: { Authorization: `Bearer ${token}` },
   });
 };

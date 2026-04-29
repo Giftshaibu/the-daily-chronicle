@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { AxiosError } from "axios";
 import logo1 from "@/assets/thePostOffice1.png";
 import { useMutation } from "@tanstack/react-query";
@@ -12,9 +12,14 @@ const VerifyEmailNoticePage = () => {
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const { user } = useAuth();
+  const location = useLocation();
+  const from = (location.state as { from?: { pathname?: string; search?: string } } | null)?.from;
+  const redirectPath = from?.pathname?.startsWith("/") && !from.pathname.startsWith("//")
+    ? `${from.pathname}${from.search || ""}`
+    : "/";
 
   const resendMutation = useMutation({
-    mutationFn: () => resendVerificationEmail(),
+    mutationFn: () => resendVerificationEmail(redirectPath),
     onSuccess: () => {
       setSuccessMsg("A new verification link has been sent to your email address.");
       setErrorMsg("");
