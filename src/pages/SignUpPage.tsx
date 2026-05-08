@@ -35,6 +35,7 @@ const SignUpPage = () => {
     { label: "At least one symbol", valid: /[^A-Za-z0-9]/.test(password) },
     { label: "Passwords match", valid: password.length > 0 && password === passwordConfirmation },
   ];
+  const showPasswordChecks = password.length > 0 || passwordConfirmation.length > 0;
   const rawNextPath = searchParams.get("next") || (location.state as { from?: { pathname?: string; search?: string } } | null)?.from?.pathname || "/";
   const rawNextSearch = (location.state as { from?: { search?: string } } | null)?.from?.search || "";
   const redirectPath = rawNextPath.startsWith("/") && !rawNextPath.startsWith("//") && rawNextPath !== "/signup"
@@ -217,19 +218,21 @@ const SignUpPage = () => {
             />
           </div>
 
-          <div className="bg-white/10 border border-white/30 px-4 py-3 rounded-sm">
-            <p className="text-primary-foreground font-body text-xs font-semibold mb-2">Password must include:</p>
-            <ul className="space-y-1">
-              {passwordChecks.map((check) => (
-                <li
-                  key={check.label}
-                  className={`font-body text-xs ${check.valid ? "text-primary-foreground" : "text-primary-foreground/65"}`}
-                >
-                  {check.valid ? "OK" : "-"} {check.label}
-                </li>
-              ))}
-            </ul>
-          </div>
+          {showPasswordChecks && (
+            <div className="bg-white/10 border border-white/30 px-4 py-3 rounded-sm">
+              <p className="text-primary-foreground font-body text-xs font-semibold mb-2">Password must include:</p>
+              <ul className="space-y-1">
+                {passwordChecks.map((check) => (
+                  <li
+                    key={check.label}
+                    className={`font-body text-xs ${check.valid ? "text-primary-foreground" : "text-primary-foreground/65"}`}
+                  >
+                    {check.valid ? "OK" : "-"} {check.label}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <button
             type="submit"
