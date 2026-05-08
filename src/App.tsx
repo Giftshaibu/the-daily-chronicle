@@ -23,6 +23,7 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
 import VerifyEmailNoticePage from "./pages/VerifyEmailNoticePage";
+import { Analytics } from "@vercel/analytics/react";
 
 // Admin pages
 import { AdminLayout } from "./components/admin/AdminLayout";
@@ -43,6 +44,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <Analytics />
         <AudioPlayerProvider>
           <BookmarksProvider>
             <BrowserRouter>
